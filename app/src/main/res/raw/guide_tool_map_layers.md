@@ -1,5 +1,7 @@
 Layers are used to display information on the map, they are configurable on the Navigation, Photo Maps, and Map tool. See the respective tool guides for how to access the layer settings.
 
+On the layer settings panel, the higher up a layer is in the list, the more "on top" it will be drawn on the map. The order is not configurable at this time.
+
 Click on the layer's name to expand its settings.
 
 Each layer has the following settings:
@@ -17,6 +19,7 @@ This layer shows the elevation from the digital elevation model (DEM) as color. 
 Settings:
 
 - **Color**: The color scale of the pixels. The color will change based on elevation.
+- **High resolution**: If enabled, the resolution will be increased when zoomed out. This may be slower.
 
 ## Hillshade
 This layer draws shadows to help see elevation in the terrain from the digital elevation model (DEM). You can change the DEM in Settings > Altimeter.
@@ -24,6 +27,7 @@ This layer draws shadows to help see elevation in the terrain from the digital e
 Settings:
 
 - **Draw accurate shadows**: If enabled, shadows will be drawn using the position of the sun and moon, but the 3D appearance may be reduced.
+- **High resolution**: If enabled, the resolution will be increased when zoomed out. This may be slower.
 
 ## Photo Maps
 This layer shows visible Photo Maps, with the most zoomed-in map appearing on top. You can add new maps in the Photo Maps tool.
@@ -59,7 +63,11 @@ This layer draws a line between your location and the destination point you are 
 ## Tides
 This layer shows visible tides. You can add new tides in the Tides tool.
 
-## My location
+Settings:
+
+- **Show modeled tides on coastline**: If enabled, tides will be loaded from the built-in model on the coastline.
+
+## Location
 This layer shows your location, which direction you are facing (if you have a compass), and the accuracy of your GPS.
 
 Settings:

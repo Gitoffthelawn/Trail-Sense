@@ -1098,7 +1098,7 @@
     <string name="fused_altimeter_force_calibration_summary">Forceert een GPS-kalibratie elke %s</string>
     <string name="continuous_calibration">Voortdurende kalibratie</string>
     <string name="service_restart_channel_description">Een melding om activiteiten te herstarten</string>
-    <string name="compass_dynamic_colors">Dynamische kleuren kompas</string>
+    <string name="compass_dynamic_colors">Dynamische kompaskleuren</string>
     <string name="dynamic_colors">Dynamische kleuren</string>
     <string name="screen_flashlight_full_name">Schermzaklamp</string>
     <string name="compass_dynamic_colors_summary">Gebruik dynamische kleuren voor windstreken</string>
@@ -1516,4 +1516,21 @@
     <string name="copy_settings_to_other_maps">Instellingen kopiëren naar andere kaarten</string>
     <string name="guide_map_layers">Kaartlagen</string>
     <string name="my_elevation">Mijn hoogte</string>
+    <string name="draw_accurate_shadows">Nauwkeurige schaduwen weergeven</string>
+    <string name="attribution">Dank aan</string>
+    <string name="map_attribution_format">Kaartdata © %s</string>
+    <string name="show_modeled_tides">Gemodelleerde getijden aan de kustlijn tonen</string>
+    <string name="map_layer_base_map_description">Gekleurde wereldkaart in lage resolutie</string>
+    <string name="map_layer_elevation_description">Kleurgecodeerde hoogtes uit het digitale hoogtemodel</string>
+    <string name="map_layer_hillshade_description">Gekleurd terrein om hoogteverschillen te visualiseren</string>
+    <string name="map_layer_contours_description">Lijnen die hoogteverschillen en terreinhelling aangeven</string>
+    <string name="map_layer_my_location_description">Je huidige locatie, richting en GPS-nauwkeurigheid</string>
+    <string name="map_layer_my_elevation_description">Je huidige hoogte</string>
+    <string name="map_layer_beacons_description">Je opgeslagen bakens</string>
+    <string name="map_layer_paths_description">Je opgeslagen paden</string>
+    <string name="map_layer_tides_description">Je opgeslagen getijdetabellen en gemodelleerde kustgetijden</string>
+    <string name="map_layer_photo_maps_description">Je opgeslagen fotokaarten</string>
+    <string name="map_layer_cell_towers_description">Geschatte locaties van zendmasten</string>
+    <string name="map_layer_navigation_description">Lijn naar je navigatiebestemming</string>
+    <string name="high_resolution">Hoge resolutie</string>
 </resources>

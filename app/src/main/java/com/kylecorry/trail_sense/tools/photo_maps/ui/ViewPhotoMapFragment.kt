@@ -1,6 +1,7 @@
 package com.kylecorry.trail_sense.tools.photo_maps.ui
 
 import android.os.Bundle
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +12,7 @@ import com.kylecorry.andromeda.alerts.toast
 import com.kylecorry.andromeda.core.coroutines.onIO
 import com.kylecorry.andromeda.core.coroutines.onMain
 import com.kylecorry.andromeda.core.system.GeoUri
+import com.kylecorry.andromeda.core.system.Resources
 import com.kylecorry.andromeda.core.time.Throttle
 import com.kylecorry.andromeda.fragments.BoundFragment
 import com.kylecorry.andromeda.fragments.inBackground
@@ -32,6 +34,7 @@ import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.colors.AppColor
 import com.kylecorry.trail_sense.shared.dem.DEM
 import com.kylecorry.trail_sense.shared.map_layers.preferences.ui.MapLayersBottomSheet
+import com.kylecorry.trail_sense.shared.map_layers.ui.layers.getAttribution
 import com.kylecorry.trail_sense.shared.requireMainActivity
 import com.kylecorry.trail_sense.shared.sensors.SensorService
 import com.kylecorry.trail_sense.shared.sharing.ActionItem
@@ -139,11 +142,15 @@ class ViewPhotoMapFragment : BoundFragment<FragmentPhotoMapsViewBinding>() {
             setDestination(it)
         }
 
+        binding.mapAttribution.movementMethod = LinkMovementMethod.getInstance()
+
         reloadMap()
 
         binding.map.setOnLongPressListener {
             onLongPress(it)
         }
+
+        binding.map.setBackgroundColor(Resources.color(requireContext(), R.color.colorSecondary))
 
         val keepMapUp = prefs.photoMaps.keepMapFacingUp
 
@@ -169,6 +176,8 @@ class ViewPhotoMapFragment : BoundFragment<FragmentPhotoMapsViewBinding>() {
         binding.zoomInBtn.setOnClickListener {
             binding.map.zoom(2f)
         }
+
+        scheduleUpdates(5000)
     }
 
     private fun getDefaultMapAzimuth(keepMapUp: Boolean): Float {
@@ -512,6 +521,16 @@ class ViewPhotoMapFragment : BoundFragment<FragmentPhotoMapsViewBinding>() {
 
         useEffect(resetOnResume) {
             activity?.let { screenLock.updateLock(it) }
+        }
+
+        effect("attribution", layerManager.key) {
+            inBackground {
+                val attribution = binding.map.getAttribution()
+                onMain {
+                    binding.mapAttribution.text = attribution
+                    binding.mapAttribution.isVisible = attribution != null
+                }
+            }
         }
     }
 

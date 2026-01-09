@@ -1,6 +1,10 @@
 package com.kylecorry.trail_sense.tools.map.ui
 
+import android.graphics.Color
+import android.text.method.LinkMovementMethod
+import android.widget.TextView
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kylecorry.andromeda.core.coroutines.BackgroundMinimumState
 import com.kylecorry.andromeda.core.coroutines.onMain
@@ -10,6 +14,7 @@ import com.kylecorry.andromeda.core.ui.useCallback
 import com.kylecorry.andromeda.core.ui.useService
 import com.kylecorry.andromeda.fragments.inBackground
 import com.kylecorry.andromeda.fragments.show
+import com.kylecorry.andromeda.fragments.useBackgroundEffect
 import com.kylecorry.andromeda.fragments.useClickCallback
 import com.kylecorry.andromeda.fragments.useFlow
 import com.kylecorry.andromeda.pickers.Pickers
@@ -30,6 +35,7 @@ import com.kylecorry.trail_sense.shared.extensions.useNavController
 import com.kylecorry.trail_sense.shared.extensions.useNavigationSensors
 import com.kylecorry.trail_sense.shared.extensions.usePauseEffect
 import com.kylecorry.trail_sense.shared.map_layers.preferences.ui.MapLayersBottomSheet
+import com.kylecorry.trail_sense.shared.map_layers.ui.layers.getAttribution
 import com.kylecorry.trail_sense.shared.navigateWithAnimation
 import com.kylecorry.trail_sense.shared.sensors.SensorService
 import com.kylecorry.trail_sense.shared.sharing.ActionItem
@@ -52,6 +58,7 @@ class MapFragment : TrailSenseReactiveFragment(R.layout.fragment_tool_map) {
         val menuButton = useView<FloatingActionButton>(R.id.menu_btn)
         val navigationSheetView = useView<NavigationSheetView>(R.id.navigation_sheet)
         val mapDistanceSheetView = useView<MapDistanceSheet>(R.id.distance_sheet)
+        val attributionView = useView<TextView>(R.id.map_attribution)
         val navigation = useNavigationSensors(trueNorth = true)
         val context = useAndroidContext()
         val sensors = useService<SensorService>()
@@ -81,6 +88,10 @@ class MapFragment : TrailSenseReactiveFragment(R.layout.fragment_tool_map) {
             setLockMode(getNextLockMode(lockMode, hasCompass))
         }
 
+        useEffect(attributionView) {
+            attributionView.movementMethod = LinkMovementMethod.getInstance()
+        }
+
         // Layers
         val manager = useMemo { MapToolLayerManager() }
         useEffectWithCleanup(manager, mapView, resetOnResume) {
@@ -89,6 +100,19 @@ class MapFragment : TrailSenseReactiveFragment(R.layout.fragment_tool_map) {
                 manager.pause(mapView)
             }
         }
+
+        useEffect(mapView){
+            mapView.setBackgroundColor(Color.rgb(127, 127, 127))
+        }
+
+        useBackgroundEffect(mapView, manager.key, attributionView) {
+            val attribution = mapView.getAttribution()
+            onMain {
+                attributionView.text = attribution
+                attributionView.isVisible = attribution != null
+            }
+        }
+
         val layerEditSheet = useMemo(prefs) {
             MapLayersBottomSheet(
                 MapToolRegistration.MAP_ID,

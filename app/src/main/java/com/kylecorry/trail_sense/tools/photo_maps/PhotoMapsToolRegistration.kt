@@ -67,16 +67,17 @@ object PhotoMapsToolRegistration : ToolRegistration {
                     PhotoMapLayer.LAYER_ID,
                     context.getString(R.string.photo_maps),
                     layerType = MapLayerType.Tile,
+                    description = context.getString(R.string.map_layer_photo_maps_description),
                     preferences = listOf(
                         MapLayerPreference(
                             id = PhotoMapLayer.LOAD_PDFS,
                             title = context.getString(R.string.load_pdf_tiles),
                             type = MapLayerPreferenceType.Switch,
-                            defaultValue = false,
+                            defaultValue = PhotoMapLayer.DEFAULT_LOAD_PDFS,
                             summary = context.getString(R.string.load_pdf_tiles_summary)
                         )
                     )
-                ) { _, _ -> PhotoMapLayer() }
+                ) { PhotoMapLayer() }
             )
         )
     }

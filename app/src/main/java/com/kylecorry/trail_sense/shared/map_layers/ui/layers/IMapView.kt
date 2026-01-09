@@ -1,16 +1,16 @@
 package com.kylecorry.trail_sense.shared.map_layers.ui.layers
 
-import android.content.Context
 import com.kylecorry.andromeda.core.cache.AppServiceRegistry
 import com.kylecorry.andromeda.core.units.PixelCoordinate
 import com.kylecorry.sol.science.geology.CoordinateBounds
 import com.kylecorry.sol.units.Bearing
 import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.sol.units.Distance
-import com.kylecorry.trail_sense.shared.map_layers.MapLayerBackgroundTask
-import com.kylecorry.trail_sense.shared.map_layers.MapLayerRegistry
+import com.kylecorry.trail_sense.shared.map_layers.MapLayerLoader
+import com.kylecorry.trail_sense.shared.map_layers.getAttribution
 import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.DefaultMapLayerDefinitions
-import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.getPreferenceValues
+import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.getLayerPreferencesBundle
+import com.kylecorry.trail_sense.shared.preferences.PreferencesSubsystem
 
 interface IMapView {
     fun addLayer(layer: ILayer)
@@ -74,33 +74,32 @@ fun IMapView.toCoordinate(pixel: PixelCoordinate): Coordinate {
 }
 
 fun IMapView.setLayersWithPreferences(
-    context: Context,
     mapId: String,
     layerIds: List<String>,
-    taskRunner: MapLayerBackgroundTask = MapLayerBackgroundTask(),
     additionalLayers: List<ILayer> = emptyList(),
     forceReplaceLayers: Boolean = false
 ) {
-    val registry = AppServiceRegistry.get<MapLayerRegistry>()
-    val layerDefinitions = registry.getLayers()
+    val loader = AppServiceRegistry.get<MapLayerLoader>()
+    val preferences = AppServiceRegistry.get<PreferencesSubsystem>().preferences
     val currentLayers = getLayers()
     val newLayerIds = layerIds + additionalLayers.map { it.layerId }
     val layers = if (!forceReplaceLayers && currentLayers.map { it.layerId } == newLayerIds) {
         currentLayers
     } else {
         layerIds.mapNotNull { id ->
-            layerDefinitions.firstOrNull { it.id == id }?.create(context, taskRunner)
+            loader.getLayer(id)
         } + additionalLayers
     }
+
+    val layerPreferences = preferences.getLayerPreferencesBundle(mapId, newLayerIds)
+
     val layersToPreference = layers.map { layer ->
-        layer to layerDefinitions.firstOrNull { it.id == layer.layerId }
-            ?.getPreferenceValues(context, mapId)
+        layer to layerPreferences[layer.layerId]
     }
     val actualLayers =
         layersToPreference.filter {
-            it.second?.getBoolean(
-                DefaultMapLayerDefinitions.ENABLED
-            ) != false
+            it.second?.containsKey(DefaultMapLayerDefinitions.ENABLED) == false ||
+                    it.second?.getBoolean(DefaultMapLayerDefinitions.ENABLED) != false
         }
     actualLayers.forEach {
         it.second?.let { prefs ->
@@ -116,4 +115,9 @@ fun IMapView.setLayersWithPreferences(
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : ILayer> IMapView.getLayer(): T? {
     return getLayers().firstOrNull { it is T } as T?
+}
+
+suspend fun IMapView.getAttribution(): CharSequence? {
+    val loader = AppServiceRegistry.get<MapLayerLoader>()
+    return loader.getAttribution(getLayers().map { it.layerId })
 }

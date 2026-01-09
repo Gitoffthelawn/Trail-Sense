@@ -95,8 +95,9 @@ class PhotoMapRegionLoader(
         val inSampleSize = calculateInSampleSize(
             region.width(),
             region.height(),
-            maxSize.width,
-            maxSize.height
+            // Use twice the required size to get a better quality
+            maxSize.width * 2,
+            maxSize.height * 2
         )
 
         val bitmap = if (loadPdfs && map.hasPdf(context)) {
@@ -135,18 +136,13 @@ class PhotoMapRegionLoader(
 
         bitmap?.applyOperationsOrNull(
             Conditional(
-                !improveImageScaling || !shouldApplyPerspectiveCorrection,
-                Resize(maxSize, false, useBilinearScaling = !isPixelPerfect)
-            ),
-            Conditional(
                 shouldApplyPerspectiveCorrection,
                 CorrectPerspective2(
-                    // Bounds are inverted on the Y axis from android's pixel coordinate system
                     PercentBounds(
+                        percentTopLeft,
+                        percentTopRight,
                         percentBottomLeft,
                         percentBottomRight,
-                        percentTopLeft,
-                        percentTopRight
                     ),
                     maxSize = maxSize,
                     outputSize = maxSize,

@@ -1,6 +1,7 @@
 package com.kylecorry.trail_sense.tools.field_guide
 
 import com.kylecorry.trail_sense.R
+import com.kylecorry.trail_sense.test_utils.AutomationLibrary.any
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.backUntil
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.click
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.clickOk
@@ -21,6 +22,7 @@ import com.kylecorry.trail_sense.test_utils.views.Side
 import com.kylecorry.trail_sense.test_utils.views.toolbarButton
 import com.kylecorry.trail_sense.tools.tools.infrastructure.Tools
 import org.junit.Test
+import java.time.LocalDate
 
 class ToolFieldGuideTest : ToolTestBase(Tools.FIELD_GUIDE) {
 
@@ -197,7 +199,7 @@ class ToolFieldGuideTest : ToolTestBase(Tools.FIELD_GUIDE) {
         click(R.id.time)
         pickDate(2025, 1, 1)
         pickTime(6, 0, true)
-        hasText("January 1 6:00 AM")
+        hasText("January 1, 2025 6:00 AM")
         input(R.id.location, "42, 72")
         input(R.id.elevation, "100")
         click("Harvested")
@@ -206,12 +208,12 @@ class ToolFieldGuideTest : ToolTestBase(Tools.FIELD_GUIDE) {
 
         // Sightings list
         hasText("Sightings")
-        hasText("January 1 6:00 AM")
+        hasText("January 1, 2025 6:00 AM")
         hasText("Test")
 
         // Edit by clicking
-        click("January 1 6:00 AM")
-        hasText("January 1 6:00 AM")
+        click("January 1, 2025 6:00 AM")
+        hasText("January 1, 2025 6:00 AM")
         hasText("42.000000°,  72.000000°")
         hasText("100")
         isChecked("Harvested")
@@ -223,7 +225,7 @@ class ToolFieldGuideTest : ToolTestBase(Tools.FIELD_GUIDE) {
 
         // Edit via menu
         clickListItemMenu("Edit")
-        hasText("January 1 6:00 AM")
+        hasText("January 1, 2025 6:00 AM")
         hasText("42.000000°,  72.000000°")
         hasText("100")
         isChecked("Harvested")

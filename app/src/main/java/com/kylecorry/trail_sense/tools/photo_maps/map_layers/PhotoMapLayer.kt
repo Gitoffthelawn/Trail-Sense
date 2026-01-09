@@ -16,12 +16,12 @@ class PhotoMapLayer : TileMapLayer<PhotoMapTileSource>(
     override val layerId: String = LAYER_ID
 
     init {
-        setBackgroundColor(Color.TRANSPARENT)
+        source.backgroundColor = Color.TRANSPARENT
     }
 
     override fun setPreferences(preferences: Bundle) {
         super.setPreferences(preferences)
-        source.loadPdfs = preferences.getBoolean(LOAD_PDFS)
+        source.loadPdfs = preferences.getBoolean(LOAD_PDFS, DEFAULT_LOAD_PDFS)
     }
 
     fun setPhotoMapFilter(filter: (map: PhotoMap) -> Boolean) {
@@ -45,11 +45,6 @@ class PhotoMapLayer : TileMapLayer<PhotoMapTileSource>(
         notifyListeners()
     }
 
-    override fun setBackgroundColor(color: Int) {
-        super.setBackgroundColor(color)
-        source.backgroundColor = color
-    }
-
     override fun stop() {
         super.stop()
         PhotoMapRegionLoader.removeUnneededLoaders(emptyList())
@@ -58,5 +53,6 @@ class PhotoMapLayer : TileMapLayer<PhotoMapTileSource>(
     companion object {
         const val LAYER_ID = "map"
         const val LOAD_PDFS = "load_pdfs"
+        const val DEFAULT_LOAD_PDFS = false
     }
 }

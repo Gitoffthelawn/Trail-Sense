@@ -8,11 +8,14 @@ import com.kylecorry.andromeda.core.ui.ReactiveComponent
 import com.kylecorry.andromeda.fragments.observeFlow
 import com.kylecorry.andromeda.fragments.useBackgroundEffect
 import com.kylecorry.luna.coroutines.ParallelCoroutineRunner
-import com.kylecorry.sol.math.SolMath.deltaAngle
+import com.kylecorry.sol.math.interpolation.Interpolation
+import com.kylecorry.sol.science.geology.CoordinateBounds
 import com.kylecorry.sol.units.Coordinate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.ceil
+import kotlin.math.floor
 
 fun Fragment.observe(
     subscription: ISubscription,
@@ -138,10 +141,51 @@ suspend inline fun <reified T> Bitmap.reducePixels(
     }, combiner = combiner)
 }
 
-inline fun IntArray.get(x: Int, y: Int, width: Int): Int {
+fun IntArray.get(x: Int, y: Int, width: Int): Int {
     return this[y * width + x]
 }
 
-inline fun IntArray.set(x: Int, y: Int, width: Int, value: Int) {
+fun IntArray.set(x: Int, y: Int, width: Int, value: Int) {
     this[y * width + x] = value
+}
+
+fun CoordinateBounds.grid(resolution: Double): List<Coordinate> {
+    val latitudes = Interpolation.getMultiplesBetween(
+        south - resolution,
+        north + resolution,
+        resolution
+    )
+
+    val longitudes = Interpolation.getMultiplesBetween(
+        west - resolution,
+        (if (west < east) east else east + 360) + resolution,
+        resolution
+    )
+
+    val points = mutableListOf<Coordinate>()
+    for (lat in latitudes) {
+        for (lon in longitudes) {
+            points.add(Coordinate(lat, lon))
+        }
+    }
+    return points
+}
+
+fun Interpolation.getMultiplesBetween2(
+    start: Double,
+    end: Double,
+    multiple: Double
+): DoubleArray {
+    val startMultiple = ceil(start / multiple).toInt()
+    val endMultiple = floor(end / multiple).toInt()
+    val size = endMultiple - startMultiple + 1
+    if (size <= 0) return DoubleArray(0)
+
+    val result = DoubleArray(size)
+    var value = startMultiple * multiple
+    for (i in 0 until size) {
+        result[i] = value
+        value += multiple
+    }
+    return result
 }

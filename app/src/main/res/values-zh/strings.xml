@@ -1503,4 +1503,21 @@
     <string name="copy_settings_to_other_maps">复制设置到其他地图</string>
     <string name="guide_map_layers">地图层</string>
     <string name="my_elevation">我的海拔</string>
+    <string name="draw_accurate_shadows">绘制精确阴影</string>
+    <string name="attribution">归属信息</string>
+    <string name="map_attribution_format">地图数据 © %s</string>
+    <string name="show_modeled_tides">显示模型预测的海岸线潮汐</string>
+    <string name="map_layer_base_map_description">低分辨率的彩色世界地图</string>
+    <string name="map_layer_elevation_description">根据数字高程模型生成的彩色编码海拔</string>
+    <string name="map_layer_hillshade_description">可视化海拔变化的阴影地形</string>
+    <string name="map_layer_contours_description">显示海拔高度和地形坡度的线条</string>
+    <string name="map_layer_my_location_description">当前位置、方向和 GPS 精度</string>
+    <string name="map_layer_my_elevation_description">当前海拔</string>
+    <string name="map_layer_beacons_description">保存的信标</string>
+    <string name="map_layer_paths_description">保存的路径</string>
+    <string name="map_layer_tides_description">保存的潮汐表和模型预测的海岸潮汐</string>
+    <string name="map_layer_photo_maps_description">保存的照片地图</string>
+    <string name="map_layer_cell_towers_description">大致的信号塔位置</string>
+    <string name="map_layer_navigation_description">前往导航目的地的路线</string>
+    <string name="high_resolution">高分辨率</string>
 </resources>

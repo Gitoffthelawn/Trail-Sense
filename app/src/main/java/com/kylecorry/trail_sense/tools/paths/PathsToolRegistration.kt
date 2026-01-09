@@ -127,6 +127,7 @@ object PathsToolRegistration : ToolRegistration {
                 MapLayerDefinition(
                     PathLayer.LAYER_ID,
                     context.getString(R.string.paths),
+                    description = context.getString(R.string.map_layer_paths_description),
                     preferences = listOf(
                         MapLayerPreference(
                             id = PathLayer.BACKGROUND_COLOR,
@@ -137,10 +138,10 @@ object PathsToolRegistration : ToolRegistration {
                                 context.getString(R.string.color_black) to PathBackgroundColor.Black.id.toString(),
                                 context.getString(R.string.color_white) to PathBackgroundColor.White.id.toString(),
                             ),
-                            defaultValue = PathBackgroundColor.None.id.toString(),
+                            defaultValue = PathLayer.DEFAULT_BACKGROUND_COLOR.id.toString(),
                         )
                     )
-                ) { _, _ -> PathLayer() }
+                ) { PathLayer() }
             )
         )
     }

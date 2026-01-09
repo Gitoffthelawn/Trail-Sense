@@ -10,7 +10,6 @@ import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.MapLayerDefi
 import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.MapLayerPreference
 import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.MapLayerPreferenceType
 import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.MapLayerType
-import com.kylecorry.trail_sense.tools.map.map_layers.BackgroundColorMapLayer
 import com.kylecorry.trail_sense.tools.map.map_layers.BaseMapLayer
 import com.kylecorry.trail_sense.tools.map.map_layers.MyElevationLayer
 import com.kylecorry.trail_sense.tools.map.map_layers.MyLocationLayer
@@ -41,12 +40,14 @@ object MapToolRegistration : ToolRegistration {
                 MapLayerDefinition(
                     BaseMapLayer.LAYER_ID,
                     context.getString(R.string.basemap),
-                    layerType = MapLayerType.Tile
-                ) { _, _ -> BaseMapLayer() },
+                    layerType = MapLayerType.Tile,
+                    description = context.getString(R.string.map_layer_base_map_description)
+                ) { BaseMapLayer() },
                 MapLayerDefinition(
                     ElevationLayer.LAYER_ID,
                     context.getString(R.string.elevation),
                     layerType = MapLayerType.Tile,
+                    description = context.getString(R.string.map_layer_elevation_description),
                     preferences = listOf(
                         MapLayerPreference(
                             id = "dem_settings",
@@ -68,14 +69,21 @@ object MapToolRegistration : ToolRegistration {
                                 context.getString(R.string.color_inferno) to ElevationColorStrategy.Inferno.id.toString(),
                                 context.getString(R.string.color_plasma) to ElevationColorStrategy.Plasma.id.toString(),
                             ),
-                            defaultValue = ElevationColorStrategy.USGS.id.toString(),
-                        )
+                            defaultValue = ElevationLayer.DEFAULT_COLOR.id.toString(),
+                        ),
+                        MapLayerPreference(
+                            id = ElevationLayer.HIGH_RESOLUTION,
+                            title = context.getString(R.string.high_resolution),
+                            type = MapLayerPreferenceType.Switch,
+                            defaultValue = ElevationLayer.DEFAULT_HIGH_RESOLUTION,
+                        ),
                     )
-                ) { _, taskRunner -> ElevationLayer(taskRunner) },
+                ) { ElevationLayer() },
                 MapLayerDefinition(
                     HillshadeLayer.LAYER_ID,
                     context.getString(R.string.hillshade),
                     layerType = MapLayerType.Tile,
+                    description = context.getString(R.string.map_layer_hillshade_description),
                     preferences = listOf(
                         MapLayerPreference(
                             id = "dem_settings",
@@ -88,13 +96,20 @@ object MapToolRegistration : ToolRegistration {
                             id = HillshadeLayer.DRAW_ACCURATE_SHADOWS,
                             title = context.getString(R.string.draw_accurate_shadows),
                             type = MapLayerPreferenceType.Switch,
-                            defaultValue = false,
+                            defaultValue = HillshadeLayer.DEFAULT_DRAW_ACCURATE_SHADOWS,
+                        ),
+                        MapLayerPreference(
+                            id = HillshadeLayer.HIGH_RESOLUTION,
+                            title = context.getString(R.string.high_resolution),
+                            type = MapLayerPreferenceType.Switch,
+                            defaultValue = HillshadeLayer.DEFAULT_HIGH_RESOLUTION,
                         ),
                     )
-                ) { _, taskRunner -> HillshadeLayer(taskRunner) },
+                ) { HillshadeLayer() },
                 MapLayerDefinition(
                     ContourLayer.LAYER_ID,
                     context.getString(R.string.contours),
+                    description = context.getString(R.string.map_layer_contours_description),
                     preferences = listOf(
                         MapLayerPreference(
                             id = "dem_settings",
@@ -107,7 +122,7 @@ object MapToolRegistration : ToolRegistration {
                             id = ContourLayer.SHOW_LABELS,
                             title = context.getString(R.string.show_labels),
                             type = MapLayerPreferenceType.Switch,
-                            defaultValue = true,
+                            defaultValue = ContourLayer.DEFAULT_SHOW_LABELS,
                         ),
                         MapLayerPreference(
                             id = ContourLayer.COLOR,
@@ -126,13 +141,14 @@ object MapToolRegistration : ToolRegistration {
                                 context.getString(R.string.color_inferno) to ElevationColorStrategy.Inferno.id.toString(),
                                 context.getString(R.string.color_plasma) to ElevationColorStrategy.Plasma.id.toString(),
                             ),
-                            defaultValue = ElevationColorStrategy.Brown.id.toString(),
+                            defaultValue = ContourLayer.DEFAULT_COLOR.id.toString(),
                         )
                     )
-                ) { _, taskRunner -> ContourLayer(taskRunner) },
+                ) { ContourLayer() },
                 MapLayerDefinition(
                     MyLocationLayer.LAYER_ID,
-                    context.getString(R.string.my_location),
+                    context.getString(R.string.location),
+                    description = context.getString(R.string.map_layer_my_location_description),
                     preferences = listOf(
                         MapLayerPreference(
                             id = MyLocationLayer.SHOW_ACCURACY,
@@ -141,30 +157,26 @@ object MapToolRegistration : ToolRegistration {
                             defaultValue = true,
                         )
                     )
-                ) { _, _ -> MyLocationLayer() },
-                MapLayerDefinition(
-                    BackgroundColorMapLayer.LAYER_ID,
-                    context.getString(R.string.background_color),
-                    isConfigurable = false,
-                ) { _, _ -> BackgroundColorMapLayer() },
+                ) { MyLocationLayer() },
                 MapLayerDefinition(
                     ScaleBarLayer.LAYER_ID,
                     context.getString(R.string.map_scale_title),
                     isConfigurable = false,
                     layerType = MapLayerType.Overlay
-                ) { _, _ -> ScaleBarLayer() },
+                ) { ScaleBarLayer() },
                 MapLayerDefinition(
                     CompassOverlayLayer.LAYER_ID,
                     context.getString(R.string.pref_compass_sensor_title),
                     isConfigurable = false,
                     layerType = MapLayerType.Overlay
-                ) { _, _ -> CompassOverlayLayer() },
+                ) { CompassOverlayLayer() },
                 MapLayerDefinition(
                     MyElevationLayer.LAYER_ID,
                     context.getString(R.string.my_elevation),
                     isConfigurable = false,
-                    layerType = MapLayerType.Overlay
-                ) { _, _ -> MyElevationLayer() }
+                    layerType = MapLayerType.Overlay,
+                    description = context.getString(R.string.map_layer_my_elevation_description)
+                ) { MyElevationLayer() }
             )
         )
     }
