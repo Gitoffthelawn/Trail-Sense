@@ -29,6 +29,27 @@ Settings:
 - **Draw accurate shadows**: If enabled, shadows will be drawn using the position of the sun and moon, but the 3D appearance may be reduced.
 - **High resolution**: If enabled, the resolution will be increased when zoomed out. This may be slower.
 
+## Slope
+This layer colors the terrain by steepness using the digital elevation model (DEM). You can change the DEM in Settings > Altimeter.
+
+Settings:
+
+- **Color**: The color scale of the pixels. The color will change based on slope steepness.
+  - **Green to red**: Green for flat areas, yellow for moderate slopes, and red for steep slopes.
+  - **White to red**: White for flat areas, yellow for moderate slopes, and red for steep slopes.
+  - **Grayscale**: Black for flat areas to white for steep slopes.
+- **Smooth**: If enabled, the slope colors will be smoothed so you can better see gradual changes.
+- **Hide flat ground**: If enabled, flat ground (slope below 10 degrees) will be invisible.
+- **High resolution**: If enabled, the resolution will be increased when zoomed out. This may be slower.
+
+## Aspect
+This layer colors the terrain by aspect (the direction the slope is facing) using the digital elevation model (DEM). You can change the DEM in Settings > Altimeter.
+
+Green = North, Blue = East, Red = South, Orange = West
+
+Settings:
+- **High resolution**: If enabled, the resolution will be increased when zoomed out. This may be slower.
+
 ## Photo Maps
 This layer shows visible Photo Maps, with the most zoomed-in map appearing on top. You can add new maps in the Photo Maps tool.
 
