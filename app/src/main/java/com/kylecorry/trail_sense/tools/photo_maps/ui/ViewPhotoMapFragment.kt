@@ -333,7 +333,6 @@ class ViewPhotoMapFragment : BoundFragment<FragmentPhotoMapsViewBinding>() {
         layerSheet?.dismiss()
         layerSheet = MapLayersBottomSheet(
             PhotoMapsToolRegistration.MAP_ID,
-            PhotoMapToolLayerManager.defaultLayers,
             PhotoMapToolLayerManager.alwaysEnabledLayers
         )
         layerManager.pause(binding.map)
@@ -404,6 +403,10 @@ class ViewPhotoMapFragment : BoundFragment<FragmentPhotoMapsViewBinding>() {
         // Show zoom buttons
         binding.zoomInBtn.isVisible = true
         binding.zoomOutBtn.isVisible = true
+        binding.map.isZoomEnabled = true
+
+        // Make it interactive
+        binding.map.isInteractive = true
         binding.map.isZoomEnabled = true
 
         // Show the bottom navigation
