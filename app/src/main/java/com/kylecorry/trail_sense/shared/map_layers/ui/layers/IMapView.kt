@@ -3,6 +3,7 @@ package com.kylecorry.trail_sense.shared.map_layers.ui.layers
 import android.content.Context
 import com.kylecorry.andromeda.core.cache.AppServiceRegistry
 import com.kylecorry.andromeda.core.units.PixelCoordinate
+import com.kylecorry.andromeda.geojson.GeoJsonFeature
 import com.kylecorry.sol.science.geology.CoordinateBounds
 import com.kylecorry.sol.units.Bearing
 import com.kylecorry.sol.units.Coordinate
@@ -11,8 +12,7 @@ import com.kylecorry.trail_sense.shared.map_layers.MapLayerLoader
 import com.kylecorry.trail_sense.shared.map_layers.MapViewLayerManager
 import com.kylecorry.trail_sense.shared.map_layers.getAttribution
 import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.DefaultMapLayerDefinitions
-import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.getLayerPreferencesBundle
-import com.kylecorry.trail_sense.shared.preferences.PreferencesSubsystem
+import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.MapLayerPreferenceRepo
 
 interface IMapView {
 
@@ -56,6 +56,11 @@ interface IMapView {
     val mapRotation: Float
 
     val mapBounds: CoordinateBounds
+
+    /**
+     * Set the feature click listener for the map
+     */
+    fun setOnGeoJsonFeatureClickListener(listener: ((GeoJsonFeature) -> Unit)?)
 }
 
 fun IMapView.toPixel(coordinate: Coordinate): PixelCoordinate {
@@ -89,7 +94,7 @@ fun IMapView.setLayersWithPreferences(
     forceReplaceLayers: Boolean = false
 ) {
     val loader = AppServiceRegistry.get<MapLayerLoader>()
-    val preferences = AppServiceRegistry.get<PreferencesSubsystem>().preferences
+    val repo = AppServiceRegistry.get<MapLayerPreferenceRepo>()
     val currentLayers = layerManager.getLayers()
     val newLayerIds = layerIds + additionalLayers.map { it.layerId }
     val layers = if (!forceReplaceLayers && currentLayers.map { it.layerId } == newLayerIds) {
@@ -100,7 +105,7 @@ fun IMapView.setLayersWithPreferences(
         } + additionalLayers
     }
 
-    val layerPreferences = preferences.getLayerPreferencesBundle(mapId, newLayerIds)
+    val layerPreferences = repo.getLayerPreferencesBundle(mapId, newLayerIds)
 
     val layersToPreference = layers.map { layer ->
         layer to layerPreferences[layer.layerId]

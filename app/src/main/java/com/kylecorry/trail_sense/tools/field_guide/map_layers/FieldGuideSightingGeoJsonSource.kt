@@ -16,6 +16,7 @@ import com.kylecorry.trail_sense.tools.field_guide.infrastructure.FieldGuideRepo
 class FieldGuideSightingGeoJsonSource : GeoJsonSource {
 
     private val repo = AppServiceRegistry.get<FieldGuideRepo>()
+    var nameFormat = ""
 
     private val tagIconMap = mapOf(
         FieldGuidePageTag.Plant to BeaconIcon.Plant,
@@ -52,7 +53,7 @@ class FieldGuideSightingGeoJsonSource : GeoJsonSource {
                 val point = GeoJsonFeature.point(
                     sighting.location!!,
                     sighting.id,
-                    page.name,
+                    nameFormat.format(page.name),
                     color = Color.BLACK,
                     icon = icon.id,
                     iconSize = 12f * 0.75f,
@@ -60,8 +61,9 @@ class FieldGuideSightingGeoJsonSource : GeoJsonSource {
                     markerShape = "circle",
                     size = 12f,
                     isClickable = true,
+                    layerId = FieldGuideSightingLayer.LAYER_ID,
                     additionalProperties = mapOf(
-                        GEO_JSON_PROPERTY_PAGE_ID to page.id
+                        FieldGuideSightingLayer.PROPERTY_PAGE_ID to page.id
                     )
                 )
                 point
@@ -81,10 +83,6 @@ class FieldGuideSightingGeoJsonSource : GeoJsonSource {
             .maxByOrNull { it.parentId != null }
 
         return tagIconMap[lowestTag] ?: BeaconIcon.Information
-    }
-
-    companion object {
-        const val GEO_JSON_PROPERTY_PAGE_ID = "page_id"
     }
 }
 
