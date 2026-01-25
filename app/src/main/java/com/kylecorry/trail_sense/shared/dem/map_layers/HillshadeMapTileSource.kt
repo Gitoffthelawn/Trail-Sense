@@ -3,7 +3,6 @@ package com.kylecorry.trail_sense.shared.dem.map_layers
 import android.graphics.Bitmap
 import android.graphics.Color
 import com.kylecorry.andromeda.bitmaps.operations.applyOperationsOrNull
-import com.kylecorry.luna.coroutines.Parallel
 import com.kylecorry.sol.math.SolMath.toRadians
 import com.kylecorry.sol.math.analysis.Trigonometry
 import com.kylecorry.sol.units.Coordinate
@@ -23,21 +22,15 @@ import kotlin.math.sin
 class HillshadeMapTileSource : TileSource {
     var drawAccurateShadows: Boolean = false
     var highResolution: Boolean = false
+    var multiDirectionShading: Boolean = false
     private val astronomy = AstronomyService()
 
-    override suspend fun load(tiles: List<Tile>, onLoaded: suspend (Tile, Bitmap?) -> Unit) {
-        Parallel.forEach(tiles, 16) {
-            val bitmap = loadTile(it)
-            onLoaded(it, bitmap)
-        }
-    }
-
-    private suspend fun loadTile(tile: Tile): Bitmap? {
+    override suspend fun loadTile(tile: Tile): Bitmap? {
         val zoomLevel = tile.z.coerceIn(DEM.IMAGE_MIN_ZOOM_LEVEL, DEM.IMAGE_MAX_ZOOM_LEVEL)
         val bounds = tile.getBounds()
         val zFactor = 3f
-        val samples = 1
-        val sampleSpacing = 3f
+        val samples = if (multiDirectionShading) 5 else 1
+        val sampleSpacing = 45f
         val (azimuth, altitude) = getShadowConfig(bounds.center)
         val zoomToResolutionMap = if (highResolution) {
             DEM.HIGH_RESOLUTION_ZOOM_TO_RESOLUTION
