@@ -13,7 +13,6 @@ import com.kylecorry.trail_sense.shared.dem.DEM
 import com.kylecorry.trail_sense.shared.dem.colors.ElevationColorMap
 import com.kylecorry.trail_sense.shared.dem.colors.TrailSenseVibrantElevationColorMap
 import com.kylecorry.trail_sense.shared.extensions.lineString
-import com.kylecorry.trail_sense.shared.map_layers.tiles.TileMath
 import com.kylecorry.trail_sense.shared.map_layers.ui.layers.geojson.sources.GeoJsonSource
 import com.kylecorry.trail_sense.tools.paths.domain.LineStyle
 
@@ -47,24 +46,26 @@ class ContourGeoJsonSource : GeoJsonSource {
         }
     }
 
+    private val minZoom = 13
+    private val maxZoom = 19
+
     private val showLabelsOnAllContoursZoomLevels = setOf(
         14, 15, 19
     )
 
     override suspend fun load(
         bounds: CoordinateBounds,
-        metersPerPixel: Float
-    ): GeoJsonObject {
-        val zoomLevel = TileMath.getZoomLevel(
-            bounds,
-            metersPerPixel
-        ).coerceIn(DEM.IMAGE_MIN_ZOOM_LEVEL, DEM.IMAGE_MAX_ZOOM_LEVEL)
+        zoom: Int
+    ): GeoJsonObject? {
+        if (zoom !in minZoom..maxZoom) {
+            return null
+        }
 
-        val interval = validIntervals[zoomLevel] ?: validIntervals.values.first()
+        val interval = validIntervals[zoom] ?: validIntervals.values.first()
         val contours = DEM.getContourLines(
             bounds,
             interval,
-            DEM.LOW_RESOLUTION_ZOOM_TO_RESOLUTION[zoomLevel]!!
+            DEM.LOW_RESOLUTION_ZOOM_TO_RESOLUTION[zoom]!!
         )
         var i = -10000L
 
@@ -79,7 +80,7 @@ class ContourGeoJsonSource : GeoJsonSource {
                     line,
                     i++,
                     name = if (isImportantLine || showLabelsOnAllContoursZoomLevels.contains(
-                            zoomLevel
+                            zoom
                         )
                     ) {
                         name
