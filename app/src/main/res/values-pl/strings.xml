@@ -16,13 +16,13 @@
     <string name="no_beacons">Brak punktów nawigacyjnych</string>
     <string name="continue_button">KONTYNUUJ</string>
     <string name="stop">Stop</string>
-    <string name="smoothing_summary">Wyższe wartości mogą zmniejszyć zakłócenia</string>
+    <string name="smoothing_summary">Wysokie wartości mogą zmniejszyć zakłócenia</string>
     <string name="pref_theme_title">Motyw</string>
     <string name="pref_display_multi_beacons_title">Pokazuj pobliskie punkty nawigacyjne</string>
     <string name="pref_storm_alert_sensitivity_title">Wrażliwość na burzę</string>
     <string name="pref_show_sun_moon_compass_title">Pokaż słońce/księżyc na kompasie</string>
     <string name="pref_show_linear_compass_title">Pokaż kompas liniowy</string>
-    <string name="pref_show_linear_compass_summary">Gdy telefon jest ustawiony pionowo</string>
+    <string name="pref_show_linear_compass_summary">Gdy telefon jest trzymany pionowo</string>
     <string name="feet_miles">Stopy / Mile</string>
     <string name="units_hpa">hPa</string>
     <string name="units_inhg">inHg</string>
@@ -33,10 +33,10 @@
     <string name="theme_black">Czarny</string>
     <string name="theme_system">Systemowy</string>
     <string name="gps">GPS</string>
-    <string name="sun_actual">rzeczywisty</string>
-    <string name="sun_civil">cywilny</string>
-    <string name="sun_nautical">żeglarski</string>
-    <string name="sun_astronomical">astronomiczny</string>
+    <string name="sun_actual">Rzeczywisty</string>
+    <string name="sun_civil">Cywilny</string>
+    <string name="sun_nautical">Żeglarski</string>
+    <string name="sun_astronomical">Astronomiczny</string>
     <string name="today">Dziś</string>
     <string name="tomorrow">Jutro</string>
     <string name="yesterday">Wczoraj</string>
@@ -51,7 +51,7 @@
     <string name="no_group">Brak grupy</string>
     <string name="group">Grupa</string>
     <string name="error_occurred">Wystąpił błąd</string>
-    <string name="pref_email_title">Adres e-mail twórcy aplikacji</string>
+    <string name="pref_email_title">Napisz do dewelopera</string>
     <string name="pref_github_title">GitHub</string>
     <string name="pref_app_version_title">Wersja</string>
     <string name="pref_category_about">O aplikacji</string>
@@ -66,7 +66,7 @@
     <string name="edit">Edytuj</string>
     <string name="delete">Usuń</string>
     <string name="add">Dodaj</string>
-    <string name="moon_phase">Faza Księżyca</string>
+    <string name="moon_phase">Faza księżyca</string>
     <string name="sunset_alerts">Alerty o zachodzie słońca</string>
     <string name="full_moon">Pełnia</string>
     <string name="sun_down_no_set">Słońce zaszło</string>
@@ -127,19 +127,19 @@
     <string name="forecasts_category">Prognozy</string>
     <string name="tool_user_guide_summary">Poradnik dotyczący korzystania z Trail Sense</string>
     <string name="pref_monitor_weather_title">Monitoruj pogodę</string>
-    <string name="pref_max_beacon_distance_title">Promień punktów nawigacyjnych w pobliżu</string>
-    <string name="pref_show_calibrate_on_navigate_dialog_title">Skalibruj przed rozpoczęciem nawigacji</string>
-    <string name="pref_display_multi_beacons_summary">Pokaż najbliższe punkty nawigacjne na kompasie</string>
+    <string name="pref_max_beacon_distance_title">Promień pobliskich punktów nawigacyjnych</string>
+    <string name="pref_show_calibrate_on_navigate_dialog_title">Skalibruj przed nawigowaniem</string>
+    <string name="pref_display_multi_beacons_summary">Pokazuj najbliższe punkty nawigacjne na kompasie</string>
     <string name="pref_num_visible_beacons_title">Pobliskie punkty nawigacyjne</string>
     <string name="never">Nigdy</string>
     <string name="pref_elevation_override_sea_level_dialog_title">Wprowadź ciśnienie na poziomie morza</string>
     <string name="pref_elevation_override_sea_level_dialog_msg">Wprowadź aktualne ciśnienie na poziomie morza w hPa</string>
-    <string name="elevation_from_pressure">Ustawianie zastępowanie z barometru</string>
+    <string name="elevation_from_pressure">Ustaw nadpisanie z barometru</string>
     <string name="pref_altimeter_calibration_title">Wysokościomierz</string>
     <string name="request_permission">Poproś o uprawnienia</string>
     <string name="compass_reported_accuracy">Zgłoszona dokładność: %s</string>
     <string name="pref_auto_declination_summary">Na podstawie aktualnej lokalizacji</string>
-    <string name="clinometer_rotate_device">Trzymaj telefon pionowo, aby zmierzyć nachylenie</string>
+    <string name="clinometer_rotate_device">Trzymaj telefon pionowo</string>
     <string name="tool_clinometer_summary">Oszacowanie zagrożenia lawinowego i wysokości obiektów</string>
     <string name="sunset_alert_channel_title">Alert o zachodzie słońca</string>
     <string name="sun_up_no_set">Słońce wzeszło</string>
@@ -147,14 +147,14 @@
     <string name="tool_bubble_level_title">Poziomica</string>
     <string name="calibrate_compass_dialog_title">Kalibracja kompasu</string>
     <string name="calibrate">Kalibracja</string>
-    <string name="pref_ruler_calibration_summary">"Protokół kalibracji:\n\n-  Ustaw wartość na 1.\n\n- Zmierz wartość linijki programu Trail Sense odpowiadającą jednej jednostce fizycznej linijki.\n\n- Podaj zmierzoną wartość."</string>
+    <string name="pref_ruler_calibration_summary">"Protokół kalibracji:\n\n-  Ustaw wartość na 1.\n\n- Zmierz wartość linijki w aplikacji, odpowiadającą jednej jednostce fizycznej linijki.\n\n- Podaj zmierzoną wartość."</string>
     <string name="edit_item_title">Edycja elementu</string>
     <string name="create_item_title">Tworzenie elementu</string>
     <string name="dialog_item_amount">Ilość</string>
     <string name="subtract">Odejmij</string>
-    <string name="coordinate_format_degrees_decimal_minutes">Stopnie Minuty</string>
+    <string name="coordinate_format_degrees_decimal_minutes">Stopnie | Minuty</string>
     <string name="pref_coordinate_format_title">Format współrzędnych</string>
-    <string name="coordinate_format_degrees_minutes_seconds">Stopnie Minuty Sekundy</string>
+    <string name="coordinate_format_degrees_minutes_seconds">Stopnie | Minuty | Sekundy</string>
     <string name="coordinate_format_decimal_degrees">Stopnie dziesiętne</string>
     <string name="pref_ruler_calibration_title">Skala linijki</string>
     <string name="sensors">Czujniki</string>
@@ -171,7 +171,7 @@
     <string name="tool_user_guide_title">Podręcznik użytkownika</string>
     <string name="pref_open_source_licenses_title">Licencje</string>
     <string name="pref_weather_update_frequency_title">Częstotliwość aktualizacji pogody</string>
-    <string name="pref_show_pressure_in_notification_title">Pokaż ciśnienie w powiadomieniu</string>
+    <string name="pref_show_pressure_in_notification_title">Pokazuj ciśnienie w powiadomieniu</string>
     <string name="pref_forecast_sensitivity_title">Dokładność prognozy</string>
     <string name="pref_monitor_weather_summary">W tle</string>
     <string name="compass_azimuth">Azymut</string>
@@ -210,7 +210,7 @@
     <string name="reset">Zresetuj</string>
     <string name="sun_moon_compass_when_up">Gdy jest ponad horyzontem</string>
     <string name="category_medical">Medyczne</string>
-    <string name="pref_sunset_alert_time_title">Czas alertu przed zachodem słońca</string>
+    <string name="pref_sunset_alert_time_title">Czas alertu o zachodzie słońca</string>
     <string name="category_natural">Naturalne</string>
     <string name="category_fire">Ogień</string>
     <string name="water_purification_step_3">Uruchom minutnik</string>
@@ -221,10 +221,8 @@
     <string name="delete_beacon_group_message">%s i wszystkie punkty nawigacjne zostaną usunięte.</string>
     <string name="pref_center_sun_and_moon_title">Utrzymuj słońce/księżyc wyśrodkowane</string>
     <string name="compass_accuracy_improved">Dokładność kompasu zwiększona do %s</string>
-    <string name="calibrate_compass_on_navigate_dialog_content">Obróć telefon kilkakrotnie według wzoru cyfry 8 lub we wszystkich kierunkach, po zakończeniu kliknij %s.
-\n
-\nTą informację można wyłączyć w ustawieniach aplikacji.</string>
-    <string name="calibrate_compass_dialog_content">Obróć telefon kilkakrotnie według wzoru cyfry 8 lub we wszystkich kierunkach, po zakończeniu kliknij %s.</string>
+    <string name="calibrate_compass_on_navigate_dialog_content">Obróć telefon kilkukrotnie, według wzoru cyfry 8 lub we wszystkich kierunkach, po zakończeniu kliknij %s. \n\nWskazówkę można wyłączyć w ustawieniach aplikacji.</string>
+    <string name="calibrate_compass_dialog_content">Obróć telefon kilkukrotnie, według wzoru cyfry 8 lub we wszystkich kierunkach, po zakończeniu kliknij %s.</string>
     <string name="override_from_gps">Ustaw nadpisanie z GPS</string>
     <string name="tool_clock_title">Zegar</string>
     <string name="lightning">Błyskawica</string>
@@ -240,7 +238,7 @@
     <string name="discharging_slow">Powolne rozładowywanie (%s)</string>
     <string name="charging_slow">Wolne ładowanie (%s)</string>
     <string name="charging_fast">Szybkie ładowanie (%s)</string>
-    <string name="compass_auto_declination">Automatyczne dostosowanie deklinacji</string>
+    <string name="compass_auto_declination">Automatyczna regulacja deklinacji</string>
     <string name="compass_declination_override">Nadpisanie deklinacji</string>
     <string name="notes_empty_text">Brak notatek</string>
     <string name="delete_note_title">Usunąć notatkę\?</string>
@@ -299,10 +297,10 @@
     <string name="threshold">Próg</string>
     <string name="pref_adjust_for_temperature_summary">Użyj temperatury w przeliczeniach ciśnienia na poziomie morza</string>
     <string name="pref_adjust_for_temperature_title">Współczynnik temperatury</string>
-    <string name="pref_elevation_override_title">Zastępowanie wysokości</string>
-    <string name="pref_auto_location_title">Automatycznie dostosuj lokalizację</string>
+    <string name="pref_elevation_override_title">Nadpisanie wysokości</string>
+    <string name="pref_auto_location_title">Automatyczna aktualizacja lokalizacji</string>
     <string name="coordinate_format_utm">UTM</string>
-    <string name="set_inclination_instructions">Dotknij lub przytrzymaj w dowolnym miejscu, aby zablokować lub odblokować</string>
+    <string name="set_inclination_instructions">Naciśnij lub przytrzymaj w dowolnym miejscu, aby zablokować lub odblokować</string>
     <string name="create_at_distance">Utwórz w odległości</string>
     <string name="coordinate_input_invalid_location">Niepoprawna lokalizacja</string>
     <string name="location_input_help_title">Wspierane formaty współrzędnych</string>
@@ -393,7 +391,7 @@
     <string name="pref_gps_override_title">Nadpisanie lokalizacji</string>
     <string name="location_override_updated">Zaktualizowano zastępowanie lokalizacji</string>
     <string name="tool_cliff_height_disclaimer">Używaj tego narzędzia tylko wtedy, gdy jest to bezpieczne i sprawdź, co znajduje się pod urwiskiem, aby uniknąć obrażeń. Instrukcje znajdują się w podręczniku użytkownika.</string>
-    <string name="pref_elevation_override_sea_level_title">Korzystanie ze znanego ciśnienia na poziomie morza</string>
+    <string name="pref_elevation_override_sea_level_title">Użycie znanego ciśnienia na poziomie morza</string>
     <string name="elevation_override_updated_toast">Zaktualizowano nadpisanie wysokości</string>
     <string name="unit_inches_abbreviation">cal</string>
     <string name="magnetic_field_format_precise">%s uT</string>
@@ -484,7 +482,7 @@
         <item quantity="many">Zaimportowano %d punktów nawigacyjnych</item>
         <item quantity="other">Zaimportowano %d punktów nawigacyjnych</item>
     </plurals>
-    <string name="theme_sunset_sunrise">Wschód/zachód słońca</string>
+    <string name="theme_sunset_sunrise">Wschód/Zachód słońca</string>
     <string name="app_disclaimer_message_title">Zastrzeżenia / Warunki korzystania</string>
     <string name="disclaimer_message_title">Zastrzeżenia</string>
     <string name="last_signal_beacon_name">Ostatni sygnał - %1$s (%2$s)</string>
@@ -1013,4 +1011,6 @@
     </plurals>
     <string name="diamond">Diament</string>
     <string name="coordinate_format_osgb">OSGB</string>
+    <string name="pref_night_mode_fullscreen_title">Pełny ekran w trybie ciemnym</string>
+    <string name="pref_night_mode_fullscreen_summary">Ukryj systemowy interfejs, aby zachować lepszą widoczność w ciemności</string>
 </resources>
