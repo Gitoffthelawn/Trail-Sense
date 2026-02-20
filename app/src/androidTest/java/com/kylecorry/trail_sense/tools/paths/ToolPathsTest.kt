@@ -2,6 +2,7 @@ package com.kylecorry.trail_sense.tools.paths
 
 import androidx.test.uiautomator.Direction
 import com.kylecorry.trail_sense.R
+import com.kylecorry.trail_sense.test_utils.AutomationLibrary
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.GPS_WAIT_FOR_TIMEOUT
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.backUntil
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.click
@@ -76,7 +77,7 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS) {
         clickOk()
         isVisible(R.id.path_title)
         hasText("Empty Path")
-        backUntil { isVisible(R.id.paths_title, waitForTime = 1000) }
+        backUntil { isVisible(R.id.paths_title) }
     }
 
     private fun groupOperations() {
@@ -113,7 +114,7 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS) {
         hasText("Test Group 2")
         clickListItemMenu(string(R.string.delete))
         clickOk()
-        not { hasText("Test Group 2", waitForTime = 0) }
+        not { hasText("Test Group 2") }
         back(false)
     }
 
@@ -160,13 +161,13 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS) {
         // Delete path
         clickListItemMenu(string(R.string.delete), index = 1)
         clickOk()
-        not { hasText("Empty Path 2", waitForTime = 0) }
+        not { hasText("Empty Path 2") }
     }
 
     private fun searchPath() {
         input(R.id.searchbox, "Path")
         hasText("Empty Path")
-        not { hasText("Dest Group", waitForTime = 0) }
+        not { hasText("Dest Group") }
         input(R.id.searchbox, "")
         hasText("Dest Group")
     }
@@ -242,7 +243,7 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS) {
             click(R.id.add_point_btn)
         }
 
-        not { hasText("Loading", waitForTime = GPS_WAIT_FOR_TIMEOUT) }
+        not(waitForTime = GPS_WAIT_FOR_TIMEOUT) { hasText("Loading") }
 
         scrollUntil(R.id.path_scroll, direction = Direction.UP) {
             hasText("2")
@@ -315,7 +316,7 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS) {
         click(toolbarButton(R.id.path_title, Side.Right))
         click("Keep forever")
         click(toolbarButton(R.id.path_title, Side.Right))
-        not { hasText("Keep forever", waitForTime = 0) }
+        not { hasText("Keep forever") }
 
         backUntil { isVisible(R.id.paths_title) }
     }
@@ -353,14 +354,17 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS) {
         click(R.id.play_btn)
 
 
-        waitFor {
-            notification(BacktrackAlerter.NOTIFICATION_ID).hasTitle(R.string.backtrack)
+        // TODO: Figure out how to check this on staging builds
+        if (AutomationLibrary.packageName == null) {
+            waitFor {
+                notification(BacktrackAlerter.NOTIFICATION_ID).hasTitle(R.string.backtrack)
+            }
         }
 
         // Wait for the battery restriction warning to go away
         optional {
             hasText(string(R.string.battery_settings_limit_accuracy))
-            not { hasText(string(R.string.battery_settings_limit_accuracy), waitForTime = 0) }
+            not { hasText(string(R.string.battery_settings_limit_accuracy)) }
         }
 
         hasText(R.id.play_bar_title, "On - 15m")
@@ -371,15 +375,21 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS) {
         // Stop backtrack
         click(R.id.play_btn)
 
-        not { notification(BacktrackAlerter.NOTIFICATION_ID) }
+        // TODO: Figure out how to check this on staging builds
+        if (AutomationLibrary.packageName == null) {
+            not { notification(BacktrackAlerter.NOTIFICATION_ID) }
+        }
     }
 
     private fun verifyQuickAction() {
         TestUtils.openQuickActions()
         click(quickAction(Tools.QUICK_ACTION_BACKTRACK))
 
-        waitFor {
-            notification(BacktrackAlerter.NOTIFICATION_ID).hasTitle(R.string.backtrack)
+        // TODO: Figure out how to check this on staging builds
+        if (AutomationLibrary.packageName == null) {
+            waitFor {
+                notification(BacktrackAlerter.NOTIFICATION_ID).hasTitle(R.string.backtrack)
+            }
         }
 
         // Wait for the path to be created
@@ -391,7 +401,10 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS) {
 
         click(quickAction(Tools.QUICK_ACTION_BACKTRACK))
 
-        not { notification(BacktrackAlerter.NOTIFICATION_ID) }
+        // TODO: Figure out how to check this on staging builds
+        if (AutomationLibrary.packageName == null) {
+            not { notification(BacktrackAlerter.NOTIFICATION_ID) }
+        }
 
         TestUtils.closeQuickActions()
     }

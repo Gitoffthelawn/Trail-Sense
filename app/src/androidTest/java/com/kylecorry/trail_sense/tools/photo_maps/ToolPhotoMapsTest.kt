@@ -1,6 +1,7 @@
 package com.kylecorry.trail_sense.tools.photo_maps
 
 import com.kylecorry.trail_sense.R
+import com.kylecorry.trail_sense.test_utils.AutomationLibrary
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.backUntil
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.click
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.clickOk
@@ -134,7 +135,7 @@ class ToolPhotoMapsTest : ToolTestBase(Tools.PHOTO_MAPS) {
         input(R.id.searchbox, "Blank")
         hasText("Blank Map")
         hasText("Blank Map", index = 1)
-        not { hasText("Test Map", waitForTime = 0) }
+        not { hasText("Test Map") }
         input(R.id.searchbox, "")
         hasText("Test Group 2")
     }
@@ -142,7 +143,7 @@ class ToolPhotoMapsTest : ToolTestBase(Tools.PHOTO_MAPS) {
     private fun canDeleteGroup() {
         clickListItemMenu(string(R.string.delete), index = 0)
         clickOk()
-        not { hasText("Test Group 2", waitForTime = 0) }
+        not { hasText("Test Group 2") }
     }
 
     private fun canRenameGroup() {
@@ -263,7 +264,7 @@ class ToolPhotoMapsTest : ToolTestBase(Tools.PHOTO_MAPS) {
         scrollUntil { hasText("Beacons") }
         scrollUntil { hasText("Paths") }
         scrollUntil { hasText("Tides") }
-        scrollUntil { hasText("Navigation") }
+        scrollUntil { hasText("Navigation")}
         scrollUntil { hasText("Photo Maps") }
         click(toolbarButton(R.id.title, Side.Right))
 
@@ -290,8 +291,8 @@ class ToolPhotoMapsTest : ToolTestBase(Tools.PHOTO_MAPS) {
         click(toolbarButton(R.id.map_title, Side.Right))
         click("Trace")
         clickOk()
-        not { isVisible(R.id.zoom_in_btn, waitForTime = 0) }
-        not { isVisible(R.id.zoom_out_btn, waitForTime = 0) }
+        not { isVisible(R.id.zoom_in_btn) }
+        not { isVisible(R.id.zoom_out_btn) }
         // Bottom nav does nothing
         click(R.id.bottom_navigation)
         click(R.id.lock_btn)
@@ -304,7 +305,7 @@ class ToolPhotoMapsTest : ToolTestBase(Tools.PHOTO_MAPS) {
         clickOk()
 
         isVisible(R.id.map_list_title)
-        not { hasText("Test Map 2", waitForTime = 0) }
+        not { hasText("Test Map 2") }
 
         // Recreate the map
         canCreateMapFromCamera(false)
@@ -322,7 +323,7 @@ class ToolPhotoMapsTest : ToolTestBase(Tools.PHOTO_MAPS) {
         click("Test Group 2")
         click("Move")
         hasText("2 maps")
-        not { hasText("Test Map 2", waitForTime = 0) }
+        not { hasText("Test Map 2") }
         click("Test Group 2")
         hasText("Test Map 2")
         back(false)
@@ -357,7 +358,7 @@ class ToolPhotoMapsTest : ToolTestBase(Tools.PHOTO_MAPS) {
     private fun canDeleteMap() {
         clickListItemMenu(string(R.string.delete))
         clickOk()
-        not { hasText("Blank Map", waitForTime = 0) }
+        not { hasText("Blank Map") }
     }
 
 }

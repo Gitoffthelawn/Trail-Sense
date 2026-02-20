@@ -1,6 +1,7 @@
 package com.kylecorry.trail_sense.tools.weather
 
 import com.kylecorry.trail_sense.R
+import com.kylecorry.trail_sense.test_utils.AutomationLibrary
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.click
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.clickOk
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.doesNotHaveNotification
@@ -28,6 +29,10 @@ class ToolWeatherTest : ToolTestBase(Tools.WEATHER) {
 
         // Historic temperature disclaimer
         clickOk()
+
+        not(waitForTime = AutomationLibrary.GPS_WAIT_FOR_TIMEOUT) {
+            hasText("Updating weather")
+        }
 
         // Weather prediction
         hasText(R.id.weather_title) {
@@ -71,42 +76,55 @@ class ToolWeatherTest : ToolTestBase(Tools.WEATHER) {
     private fun canUseWeatherMonitor() {
         hasText(R.id.play_bar_title, "Off - 15m")
         click(R.id.play_btn)
-        hasNotification(
-            WeatherMonitorService.WEATHER_NOTIFICATION_ID,
-            title = string(R.string.weather)
-        )
+
+        // TODO: Figure out how to check this on staging builds
+        if (AutomationLibrary.packageName == null) {
+            hasNotification(
+                WeatherMonitorService.WEATHER_NOTIFICATION_ID,
+                title = string(R.string.weather)
+            )
+        }
 
         // Wait for the battery restriction warning to go away
         optional {
             hasText(string(R.string.battery_settings_limit_accuracy))
-            not { hasText(string(R.string.battery_settings_limit_accuracy), waitForTime = 0) }
+            not { hasText(string(R.string.battery_settings_limit_accuracy)) }
         }
 
         hasText(R.id.play_bar_title, "On - 15m")
 
         click(R.id.play_btn)
 
-        doesNotHaveNotification(WeatherMonitorService.WEATHER_NOTIFICATION_ID)
+        // TODO: Figure out how to check this on staging builds
+        if (AutomationLibrary.packageName == null) {
+            doesNotHaveNotification(WeatherMonitorService.WEATHER_NOTIFICATION_ID)
+        }
     }
 
     private fun verifyQuickAction() {
         TestUtils.openQuickActions()
         click(quickAction(Tools.QUICK_ACTION_WEATHER_MONITOR))
 
-        hasNotification(
-            WeatherMonitorService.WEATHER_NOTIFICATION_ID,
-            title = string(R.string.weather)
-        )
+        // TODO: Figure out how to check this on staging builds
+        if (AutomationLibrary.packageName == null) {
+            hasNotification(
+                WeatherMonitorService.WEATHER_NOTIFICATION_ID,
+                title = string(R.string.weather)
+            )
+        }
 
         // Wait for the battery restriction warning to go away
         optional {
             hasText(string(R.string.battery_settings_limit_accuracy))
-            not { hasText(string(R.string.battery_settings_limit_accuracy), waitForTime = 0) }
+            not { hasText(string(R.string.battery_settings_limit_accuracy)) }
         }
 
         click(quickAction(Tools.QUICK_ACTION_WEATHER_MONITOR))
 
-        doesNotHaveNotification(WeatherMonitorService.WEATHER_NOTIFICATION_ID)
+        // TODO: Figure out how to check this on staging builds
+        if (AutomationLibrary.packageName == null) {
+            doesNotHaveNotification(WeatherMonitorService.WEATHER_NOTIFICATION_ID)
+        }
 
         TestUtils.closeQuickActions()
     }
