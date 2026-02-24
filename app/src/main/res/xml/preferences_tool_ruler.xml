@@ -10,12 +10,19 @@
             android:inputType="numberDecimal"
             app:defaultValue="1"
             app:dialogMessage="@string/pref_ruler_calibration_summary"
-            app:icon="@drawable/ruler"
+            app:iconSpaceReserved="false"
             app:key="@string/pref_ruler_calibration"
             app:min="0"
             app:singleLineTitle="false"
             app:title="@string/pref_ruler_calibration_title"
             app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="@string/pref_ruler_flip_direction"
+            app:singleLineTitle="false"
+            app:title="@string/pref_ruler_flip_direction_title" />
 
     </PreferenceCategory>
 </PreferenceScreen>

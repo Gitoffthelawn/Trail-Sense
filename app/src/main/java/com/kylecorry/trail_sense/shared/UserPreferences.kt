@@ -2,6 +2,7 @@ package com.kylecorry.trail_sense.shared
 
 import android.content.Context
 import android.hardware.SensorManager
+import com.google.android.material.color.DynamicColors
 import com.kylecorry.andromeda.core.system.Resources
 import com.kylecorry.andromeda.core.toFloatCompat
 import com.kylecorry.andromeda.preferences.BooleanPreference
@@ -47,6 +48,7 @@ import com.kylecorry.trail_sense.tools.climate.infrastructure.ClimatePreferenceR
 import com.kylecorry.trail_sense.tools.map.infrastructure.MapPreferences
 import com.kylecorry.trail_sense.tools.navigation.infrastructure.NavigationPreferences
 import com.kylecorry.trail_sense.tools.photo_maps.infrastructure.PhotoMapPreferences
+import com.kylecorry.trail_sense.tools.ruler.infrastructure.RulerPreferences
 import com.kylecorry.trail_sense.tools.tools.infrastructure.Tools
 import com.kylecorry.trail_sense.tools.tools.ui.sort.ToolSortType
 import com.kylecorry.trail_sense.tools.turn_back.infrastructure.TurnBackPreferences
@@ -64,6 +66,7 @@ class UserPreferences(ctx: Context) : IDeclinationPreferences {
     val map by lazy { MapPreferences(context) }
     val weather by lazy { WeatherPreferences(context) }
     val astronomy by lazy { AstronomyPreferences(context) }
+    val ruler by lazy { RulerPreferences(context) }
     val flashlight by lazy { FlashlightPreferenceRepo(context) }
     val cellSignal by lazy { CellSignalPreferences(context) }
     val metalDetector by lazy { MetalDetectorPreferences(context) }
@@ -210,17 +213,23 @@ class UserPreferences(ctx: Context) : IDeclinationPreferences {
             _theme = value
         }
 
-    val useDynamicColors by BooleanPreference(
+    private val _useDynamicColors by BooleanPreference(
         cache,
         context.getString(R.string.pref_use_dynamic_colors),
         false
     )
 
-    val useDynamicColorsOnCompass by BooleanPreference(
+    val useDynamicColors: Boolean
+        get() = DynamicColors.isDynamicColorAvailable() && _useDynamicColors
+
+    private val _useDynamicColorsOnCompass by BooleanPreference(
         cache,
         context.getString(R.string.pref_use_dynamic_colors_on_compass),
         false
     )
+
+    val useDynamicColorsOnCompass: Boolean
+        get() = DynamicColors.isDynamicColorAvailable() && _useDynamicColorsOnCompass
 
     var useCompactMode by BooleanPreference(
         cache,
