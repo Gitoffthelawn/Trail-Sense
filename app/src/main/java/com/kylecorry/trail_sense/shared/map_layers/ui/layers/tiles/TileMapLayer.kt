@@ -36,8 +36,9 @@ import com.kylecorry.trail_sense.shared.map_layers.tiles.TileState
 import com.kylecorry.trail_sense.shared.map_layers.ui.layers.IAsyncLayer
 import com.kylecorry.trail_sense.shared.map_layers.ui.layers.IMapView
 import com.kylecorry.trail_sense.shared.map_layers.ui.layers.IMapViewProjection
-import java.time.Instant
+import com.kylecorry.trail_sense.tools.tools.infrastructure.Tools
 import java.time.Duration
+import java.time.Instant
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -49,7 +50,9 @@ abstract class TileMapLayer<T : TileSource>(
     private var minZoomLevel: Int? = null,
     private val shouldMultiply: Boolean = false,
     override val isTimeDependent: Boolean = false,
-    private val refreshInterval: Duration? = null
+    private val refreshInterval: Duration? = null,
+    private val refreshBroadcasts: List<String> = emptyList(),
+    private val cacheKeys: List<String>? = null
 ) : IAsyncLayer {
     private var _timeOverride: Instant? = null
     private var _renderTime: Instant = Instant.now()
@@ -80,6 +83,7 @@ abstract class TileMapLayer<T : TileSource>(
     private val destRect = Rect()
     private val clipPath = Path()
     protected var layerPreferences: Bundle = bundleOf()
+    private var featureId: String? = null
 
     private val loadTimer = CoroutineTimer {
         queue.load(16)
@@ -88,6 +92,11 @@ abstract class TileMapLayer<T : TileSource>(
 
     private val sourceCleanupTask = BackgroundTask {
         source.cleanup()
+    }
+
+    private fun onRefreshBroadcastReceived(data: Bundle): Boolean {
+        refresh()
+        return true
     }
 
     fun setZoomOffset(offset: Int) {
@@ -109,9 +118,24 @@ abstract class TileMapLayer<T : TileSource>(
         }
     }
 
-    open fun getCacheKey(): String? {
-        // Don't cache by default
-        return null
+    fun getCacheKey(): String? {
+        if (cacheKeys == null) {
+            return null
+        }
+
+        val keys = mutableListOf(layerId)
+        for (key in cacheKeys) {
+            @Suppress("DEPRECATION")
+            val preference = layerPreferences.get(key)?.toString() ?: "null"
+            keys.add(preference)
+        }
+        featureId?.let { keys.add(it) }
+        return keys.joinToString("-")
+    }
+
+    override fun setFeatureFilter(id: String?) {
+        featureId = id
+        refresh()
     }
 
     override fun draw(context: Context, drawer: ICanvasDrawer, map: IMapView) {
@@ -171,7 +195,7 @@ abstract class TileMapLayer<T : TileSource>(
         if (desiredTiles.size <= MAX_TILES &&
             (desiredTiles.firstOrNull()?.z ?: 0) >= (minZoomLevel ?: 0)
         ) {
-            loader?.loadTiles(desiredTiles, _renderTime, layerPreferences, context)
+            loader?.loadTiles(desiredTiles, _renderTime, layerPreferences, featureId, context)
         } else if (desiredTiles.size > MAX_TILES) {
             Log.d("TileLoader", "Too many tiles to load: ${desiredTiles.size}")
         }
@@ -440,11 +464,17 @@ abstract class TileMapLayer<T : TileSource>(
             notifyListeners()
         }
         loadTimer.interval(100)
+        refreshBroadcasts.forEach {
+            Tools.subscribe(it, this::onRefreshBroadcastReceived)
+        }
         refreshInterval?.let { refreshTimer?.interval(it, it) }
     }
 
     override fun stop() {
         loadTimer.stop()
+        refreshBroadcasts.forEach {
+            Tools.unsubscribe(it, this::onRefreshBroadcastReceived)
+        }
         refreshTimer?.stop()
         taskRunner.stop()
         loader?.clearCache()
