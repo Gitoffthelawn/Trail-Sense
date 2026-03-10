@@ -229,6 +229,8 @@
     <string name="pref_elevation_override_title">Elevation override</string>
     <!--    The popup which appears when the elevation override is updated from the GPS or barometer-->
     <string name="elevation_override_updated_toast">Elevation override updated</string>
+    <string name="quick_action_recalibrate_altimeter">Recalibrate altimeter</string>
+    <string name="recalibrating">Recalibrating</string>
     <!--    The content of the edit text dialog which pops up when the user clicks the set override from barometer button (asks user to enter the sea level pressure)-->
     <string name="pref_elevation_override_sea_level_dialog_msg">Enter the current pressure at sea level in hPa</string>
     <!--    The title of the sea level pressure override edit text dialog-->
@@ -841,6 +843,7 @@
     <string name="percent_packed">%s packed</string>
     <string name="no_packing_lists">No packing lists</string>
     <string name="new_packing_list">New packing list</string>
+    <string name="packing_list_optional">Optional</string>
     <string name="delete_pack">Delete pack?</string>
     <string name="coordinate_format_usng">USNG</string>
     <string name="coordinate_format_osgb">OSGB</string>
@@ -1541,6 +1544,8 @@
     <string name="show_below_horizon">Show below horizon</string>
     <string name="pref_show_ar_constellations" translatable="false">pref_show_ar_constellations</string>
     <string name="show_stars">Show stars and planets</string>
+    <string name="pref_show_ar_low_brightness" translatable="false">pref_show_ar_low_brightness</string>
+    <string name="show_low_brightness_objects">Show low brightness stars/planets</string>
     <string name="tide">Tide</string>
     <string name="field_guide">Field Guide</string>
     <string name="books">Books</string>
