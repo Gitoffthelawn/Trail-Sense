@@ -497,6 +497,27 @@ class BeaconListFragment : BoundFragment<FragmentBeaconListBinding>() {
         }
     }
 
+    private fun setGroupVisibility(group: BeaconGroup, visible: Boolean) {
+        inBackground {
+            Alerts.withLoading(requireContext(), getString(R.string.loading)) {
+                val beacons = onIO {
+                    beaconService.loader.getChildren(group.id, null).filterIsInstance<Beacon>()
+                }
+
+                onIO {
+                    beacons
+                        .asSequence()
+                        .filter { it.visible != visible }
+                        .forEach { beaconService.add(it.copy(visible = visible)) }
+                }
+
+                onMain {
+                    refresh()
+                }
+            }
+        }
+    }
+
     private fun rename(group: BeaconGroup) {
         val command =
             RenameBeaconGroupCommand(requireContext(), lifecycleScope, beaconService) { refresh() }
@@ -524,6 +545,8 @@ class BeaconListFragment : BoundFragment<FragmentBeaconListBinding>() {
                 manager.open(group.id)
             }
 
+            BeaconGroupAction.ShowAll -> setGroupVisibility(group, true)
+            BeaconGroupAction.HideAll -> setGroupVisibility(group, false)
             BeaconGroupAction.Edit -> rename(group)
             BeaconGroupAction.Delete -> delete(group)
             BeaconGroupAction.Move -> move(group)
