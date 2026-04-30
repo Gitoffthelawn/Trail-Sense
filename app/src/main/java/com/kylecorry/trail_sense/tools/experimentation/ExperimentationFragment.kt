@@ -1,6 +1,5 @@
 package com.kylecorry.trail_sense.tools.experimentation
 
-import android.content.Context
 import android.widget.Button
 import android.widget.TextView
 import com.kylecorry.andromeda.core.tryOrLog
@@ -14,17 +13,13 @@ import com.kylecorry.sol.units.Temperature
 import com.kylecorry.sol.units.TimeUnits
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.plugin.sample.domain.Forecast
-import com.kylecorry.trail_sense.plugin.sample.service.SamplePluginService
 import com.kylecorry.trail_sense.plugin.sample.service.WeatherForecastService
-import com.kylecorry.trail_sense.plugins.plugins.PluginLoader
-import com.kylecorry.trail_sense.plugins.plugins.Plugins
+import com.kylecorry.trail_sense.plugins.PluginSubsystem
 import com.kylecorry.trail_sense.shared.FormatService
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.extensions.TrailSenseReactiveFragment
 import com.kylecorry.trail_sense.shared.extensions.useLocation
-import com.kylecorry.trail_sense.shared.extensions.usePauseEffect
 import com.kylecorry.trail_sense.shared.haptics.HapticSubsystem
-import java.io.Closeable
 import java.time.Duration
 
 class ExperimentationFragment : TrailSenseReactiveFragment(R.layout.fragment_experimentation) {
@@ -44,32 +39,19 @@ class ExperimentationFragment : TrailSenseReactiveFragment(R.layout.fragment_exp
         val formatter = useService<FormatService>()
         val prefs = useService<UserPreferences>()
         val markdown = useService<MarkdownService>()
-        val context = useAndroidContext()
+        val pluginSubsystem = useService<PluginSubsystem>()
 
-        val service = usePluginService(
-            Plugins.PLUGIN_SAMPLE,
-            ::SamplePluginService
-        )
-
-        val finder = useMemo(context) {
-            PluginLoader(context)
-        }
-
-        val plugins = useBackgroundMemo(finder) {
-            finder.getPluginResourceServices()
+        val plugins = useBackgroundMemo(pluginSubsystem) {
+            pluginSubsystem.getPluginResourceServiceDetails()
         }
 
         val weatherService = useMemo(plugins) {
             val plugin = plugins?.firstOrNull { it.features.weather.isNotEmpty() }
             if (plugin != null) {
-                WeatherForecastService(context, plugin)
+                WeatherForecastService(plugin)
             } else {
                 null
             }
-        }
-
-        val data = useBackgroundMemo(service) {
-            service?.ping()
         }
 
         useEffect(button, weatherService, location) {
@@ -84,7 +66,7 @@ class ExperimentationFragment : TrailSenseReactiveFragment(R.layout.fragment_exp
             }
         }
 
-        useEffect(text, text2, weather, service, isLoading, data) {
+        useEffect(text, text2, weather, isLoading, plugins) {
             val weatherText = if (isLoading) {
                 "Loading"
             } else if (weather == null) {
@@ -111,31 +93,9 @@ class ExperimentationFragment : TrailSenseReactiveFragment(R.layout.fragment_exp
                 )
             }
 
-            text.text = "$weatherText\n\n$data\n\n${plugins?.joinToString("\n\n")}"
+            text.text = "$weatherText\n\n${plugins?.joinToString("\n\n")}"
             markdown.setMarkdown(text2, weather?.citation ?: "")
         }
-    }
-
-    private fun <T : Closeable> usePluginService(
-        pluginId: Long,
-        serviceProvider: (context: Context) -> T
-    ): T? {
-        val context = useAndroidContext()
-
-        // TODO: Retry on a timer
-        val service = useMemo(pluginId) {
-            if (Plugins.isPluginAvailable(context, pluginId)) {
-                serviceProvider(context)
-            } else {
-                null
-            }
-        }
-
-        usePauseEffect(service) {
-            service?.close()
-        }
-
-        return service
     }
 
     private fun useWormGrunting() {

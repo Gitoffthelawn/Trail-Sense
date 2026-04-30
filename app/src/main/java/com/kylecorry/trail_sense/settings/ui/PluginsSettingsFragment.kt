@@ -7,13 +7,14 @@ import androidx.preference.PreferenceCategory
 import com.kylecorry.andromeda.alerts.Alerts
 import com.kylecorry.andromeda.fragments.AndromedaPreferenceFragment
 import com.kylecorry.trail_sense.R
-import com.kylecorry.trail_sense.plugins.plugins.AvailablePlugin
-import com.kylecorry.trail_sense.plugins.plugins.PluginSubsystem
+import com.kylecorry.trail_sense.main.getAppService
+import com.kylecorry.trail_sense.plugins.domain.Plugin
+import com.kylecorry.trail_sense.plugins.PluginSubsystem
 import kotlinx.coroutines.launch
 
 class PluginsSettingsFragment : AndromedaPreferenceFragment() {
 
-    private val pluginSubsystem by lazy { PluginSubsystem.getInstance(requireContext()) }
+    private val pluginSubsystem = getAppService<PluginSubsystem>()
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.empty_preferences, rootKey)
@@ -34,8 +35,8 @@ class PluginsSettingsFragment : AndromedaPreferenceFragment() {
 
     private fun addCategory(
         title: Int,
-        plugins: List<AvailablePlugin>,
-        onClick: (AvailablePlugin) -> Unit
+        plugins: List<Plugin>,
+        onClick: (Plugin) -> Unit
     ) {
         val category = PreferenceCategory(requireContext())
         category.title = getString(title)
@@ -67,7 +68,7 @@ class PluginsSettingsFragment : AndromedaPreferenceFragment() {
         }
     }
 
-    private fun confirmConnect(plugin: AvailablePlugin) {
+    private fun confirmConnect(plugin: Plugin) {
         Alerts.dialog(
             requireContext(),
             getString(R.string.plugin_connect_title),
@@ -82,7 +83,7 @@ class PluginsSettingsFragment : AndromedaPreferenceFragment() {
         }
     }
 
-    private fun confirmDisconnect(plugin: AvailablePlugin) {
+    private fun confirmDisconnect(plugin: Plugin) {
         Alerts.dialog(
             requireContext(),
             getString(R.string.plugin_disconnect_title),
@@ -97,9 +98,9 @@ class PluginsSettingsFragment : AndromedaPreferenceFragment() {
         }
     }
 
-    private fun List<AvailablePlugin>.sorted(): List<AvailablePlugin> {
+    private fun List<Plugin>.sorted(): List<Plugin> {
         return sortedWith(
-            compareBy<AvailablePlugin, String>(String.CASE_INSENSITIVE_ORDER) { it.name }
+            compareBy<Plugin, String>(String.CASE_INSENSITIVE_ORDER) { it.name }
                 .thenBy { it.packageId }
         )
     }
