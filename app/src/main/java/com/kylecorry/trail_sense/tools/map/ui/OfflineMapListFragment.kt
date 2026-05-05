@@ -11,6 +11,7 @@ import com.kylecorry.andromeda.core.coroutines.onIO
 import com.kylecorry.andromeda.core.coroutines.onMain
 import com.kylecorry.andromeda.core.ui.useService
 import com.kylecorry.andromeda.fragments.inBackground
+import com.kylecorry.andromeda.fragments.useBackgroundEffect
 import com.kylecorry.andromeda.fragments.useFlow
 import com.kylecorry.andromeda.views.list.AndromedaListView
 import com.kylecorry.andromeda.views.toolbar.Toolbar
@@ -32,7 +33,9 @@ import com.kylecorry.trail_sense.tools.map.infrastructure.persistence.OfflineMap
 import com.kylecorry.trail_sense.tools.map.ui.commands.CreateOfflineMapCommand
 import com.kylecorry.trail_sense.tools.map.ui.commands.CreateOfflineMapFileGroupCommand
 import com.kylecorry.trail_sense.tools.map.ui.commands.DeleteOfflineMapCommand
+import com.kylecorry.trail_sense.tools.map.ui.commands.EditOfflineMapAttributionCommand
 import com.kylecorry.trail_sense.tools.map.ui.commands.MoveOfflineMapFileCommand
+import com.kylecorry.trail_sense.tools.map.ui.commands.OfflineMapCleanupCommand
 import com.kylecorry.trail_sense.tools.map.ui.commands.RenameOfflineMapCommand
 import com.kylecorry.trail_sense.tools.map.ui.commands.ShowOfflineMapsDisclaimerCommand
 import com.kylecorry.trail_sense.tools.map.ui.commands.ToggleOfflineMapVisibilityCommand
@@ -120,6 +123,10 @@ class OfflineMapListFragment : TrailSenseReactiveFragment(R.layout.fragment_offl
         useEffect(context) {
             ShowOfflineMapsDisclaimerCommand(context).execute()
         }
+
+        useBackgroundEffect(lifecycleHookTrigger.onResume()) {
+            OfflineMapCleanupCommand().execute()
+        }
     }
 
     private fun sortFiles(files: List<IOfflineMapFile>): List<IOfflineMapFile> {
@@ -137,6 +144,7 @@ class OfflineMapListFragment : TrailSenseReactiveFragment(R.layout.fragment_offl
         when (action) {
             OfflineMapFileAction.View -> view(map)
             OfflineMapFileAction.Rename -> rename(map, manager)
+            OfflineMapFileAction.EditAttribution -> editAttribution(map, manager)
             OfflineMapFileAction.Delete -> delete(map, manager)
             OfflineMapFileAction.Move -> move(map, manager)
             OfflineMapFileAction.ToggleVisibility -> toggleVisible(map, manager)
@@ -174,6 +182,16 @@ class OfflineMapListFragment : TrailSenseReactiveFragment(R.layout.fragment_offl
     ) {
         inBackground {
             RenameOfflineMapCommand(requireContext()).execute(map)
+            manager.refresh()
+        }
+    }
+
+    private fun editAttribution(
+        map: OfflineMapFile,
+        manager: GroupListManager<IOfflineMapFile>
+    ) {
+        inBackground {
+            EditOfflineMapAttributionCommand(requireContext()).execute(map)
             manager.refresh()
         }
     }

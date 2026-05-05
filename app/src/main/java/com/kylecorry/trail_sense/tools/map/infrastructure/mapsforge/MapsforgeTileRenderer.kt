@@ -1,13 +1,17 @@
-package com.kylecorry.trail_sense.tools.map.infrastructure
+package com.kylecorry.trail_sense.tools.map.infrastructure.mapsforge
 
 import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
+import com.kylecorry.andromeda.core.system.Resources
 import com.kylecorry.trail_sense.main.getAppService
+import com.kylecorry.trail_sense.shared.FormatService
+import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.io.FileSubsystem
 import com.kylecorry.trail_sense.tools.map.domain.OfflineMapFile
 import com.kylecorry.trail_sense.tools.map.domain.OfflineMapFileType
 import org.mapsforge.core.model.Tile
+import org.mapsforge.map.datastore.MapDataStore
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
 import org.mapsforge.map.android.rendertheme.AssetsRenderTheme
 import org.mapsforge.map.datastore.MultiMapDataStore
@@ -23,7 +27,7 @@ import org.mapsforge.map.rendertheme.rule.RenderThemeFuture
 
 class MapsforgeTileRenderer {
     private var selectedMapKey: String? = null
-    private var mapDataStore: MultiMapDataStore? = null
+    private var mapDataStore: MapDataStore? = null
     private var renderer: DatabaseRenderer? = null
     private var tileCache: TileCache? = null
     private var renderThemeFuture: RenderThemeFuture? = null
@@ -32,14 +36,17 @@ class MapsforgeTileRenderer {
     }
 
     private val files = getAppService<FileSubsystem>()
+    private val prefs = getAppService<UserPreferences>()
+    private val formatter = getAppService<FormatService>()
 
     @Synchronized
     fun render(
         context: Context,
         maps: List<OfflineMapFile>,
-        tile: com.kylecorry.trail_sense.shared.map_layers.tiles.Tile
+        tile: com.kylecorry.trail_sense.shared.map_layers.tiles.Tile,
+        highDetailMode: Boolean
     ): Bitmap? {
-        val renderer = getRenderer(context, maps) ?: return null
+        val renderer = getRenderer(context, maps, highDetailMode) ?: return null
         val currentMapDataStore = mapDataStore ?: return null
         val currentRenderThemeFuture = renderThemeFuture ?: return null
 
@@ -53,8 +60,8 @@ class MapsforgeTileRenderer {
             currentMapDataStore,
             currentRenderThemeFuture,
             displayModel,
-            1f,
-            false,
+            if (highDetailMode) (1.5f / Resources.sp(context, 1f)).coerceIn(0.25f, 1f) else 1f,
+            true,
             false
         )
 
@@ -78,7 +85,11 @@ class MapsforgeTileRenderer {
         selectedMapKey = null
     }
 
-    private fun getRenderer(context: Context, maps: List<OfflineMapFile>): DatabaseRenderer? {
+    private fun getRenderer(
+        context: Context,
+        maps: List<OfflineMapFile>,
+        highDetailMode: Boolean
+    ): DatabaseRenderer? {
         val files = maps
             .filter { it.type == OfflineMapFileType.Mapsforge }
             .map { files.get(it.path) }
@@ -95,7 +106,7 @@ class MapsforgeTileRenderer {
 
         clear()
         AndroidGraphicFactory.createInstance(context.applicationContext as Application)
-        scaleRenderThemeToTileSize()
+        scaleRenderThemeToTileSize(highDetailMode)
         val newMapDataStore = MultiMapDataStore(MultiMapDataStore.DataPolicy.DEDUPLICATE)
         files.forEachIndexed { index, file ->
             newMapDataStore.addMapDataStore(MapFile(file), index == 0, index == 0)
@@ -107,8 +118,12 @@ class MapsforgeTileRenderer {
         )
         newRenderThemeFuture.run()
         val newTileCache = InMemoryTileCache(100)
-        val newRenderer = DatabaseRenderer(
+        val wrappedMapDataStore = MapsforgeMapDataStoreWrapper(
             newMapDataStore,
+            listOf(PeakElevationPoiModifier(prefs.baseDistanceUnits, formatter))
+        )
+        val newRenderer = DatabaseRenderer(
+            wrappedMapDataStore,
             AndroidGraphicFactory.INSTANCE,
             newTileCache,
             TileBasedLabelStore(100),
@@ -118,16 +133,20 @@ class MapsforgeTileRenderer {
         )
 
         selectedMapKey = key
-        mapDataStore = newMapDataStore
+        mapDataStore = wrappedMapDataStore
         tileCache = newTileCache
         renderThemeFuture = newRenderThemeFuture
         renderer = newRenderer
         return newRenderer
     }
 
-    private fun scaleRenderThemeToTileSize() {
+    private fun scaleRenderThemeToTileSize(highResolutionMode: Boolean) {
         val deviceScaleFactor = DisplayModel.getDeviceScaleFactor()
-        displayModel.userScaleFactor = if (deviceScaleFactor > 0f) 1f / deviceScaleFactor else 1f
+        displayModel.userScaleFactor = if (!highResolutionMode && deviceScaleFactor > 0f) {
+            1f / deviceScaleFactor
+        } else {
+            1f
+        }
     }
 
     private fun createRenderTheme(context: Context): XmlRenderTheme {
