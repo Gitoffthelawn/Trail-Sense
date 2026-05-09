@@ -10,8 +10,10 @@ import com.kylecorry.sol.science.geography.projections.IMapProjection
 import com.kylecorry.sol.science.geology.CoordinateBounds
 import com.kylecorry.sol.units.Distance
 import com.kylecorry.trail_sense.shared.io.FileSubsystem
+import com.kylecorry.trail_sense.tools.offline_maps.domain.IMap
 import com.kylecorry.trail_sense.tools.offline_maps.domain.photo_maps.projections.PhotoMapProjection
 import com.kylecorry.trail_sense.tools.offline_maps.domain.photo_maps.projections.distancePerPixel
+import java.time.Instant
 
 data class PhotoMap(
     override val id: Long,
@@ -22,7 +24,8 @@ data class PhotoMap(
     override val parentId: Long? = null,
     val visible: Boolean = true,
     val isAsset: Boolean = false,
-    val isFullWorld: Boolean = false
+    val isFullWorld: Boolean = false,
+    val createdOn: Instant? = null,
 ) : IMap {
     override val isGroup = false
     override val count: Int? = null
