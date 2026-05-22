@@ -103,7 +103,7 @@ class MapsforgeTileRenderer {
         val newTileCache = MapsforgeMockTileCache(100)
         val wrappedMapDataStore = CachedMapsforgeMapDataStoreWrapper(
             newMapDataStore,
-            0
+            10
         )
         val newRenderer = MapsforgeRenderer(
             wrappedMapDataStore,
@@ -119,7 +119,8 @@ class MapsforgeTileRenderer {
                         "natural" to setOf("water"),
                         "landuse" to setOf("reservoir", "basin"),
                     ),
-                    11
+                    referenceZoomLevel = 11,
+                    minZoom = 13
                 )
             )
         )
