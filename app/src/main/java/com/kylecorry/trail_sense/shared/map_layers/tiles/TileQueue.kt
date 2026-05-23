@@ -4,6 +4,7 @@ import android.util.Log
 import com.kylecorry.luna.coroutines.Parallel
 import com.kylecorry.trail_sense.shared.map_layers.ui.layers.IMapViewProjection
 import java.util.PriorityQueue
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.log
 
 class TileQueue {
@@ -11,10 +12,13 @@ class TileQueue {
     private val shouldLog = false
     private var changeListener: (tile: ImageTile) -> Unit = {}
     private val loadingKeys = mutableSetOf<String>()
+    private val loadingCount = AtomicInteger(0)
 
     private val comparator = compareBy<ImageTile> { getPriority(it) }
 
     private val queue = PriorityQueue(11, comparator)
+    private val queuedKeys = mutableSetOf<String>()
+    private val queuedCount = AtomicInteger(0)
 
     private var mapProjection: IMapViewProjection? = null
     private var desiredTiles: Set<Tile>? = null
@@ -35,13 +39,16 @@ class TileQueue {
     }
 
     fun enqueue(tile: ImageTile) {
+        val state = tile.state
+        if (state != TileState.Idle && state != TileState.Stale) {
+            return
+        }
         synchronized(loadingKeys) {
             if (!loadingKeys.contains(tile.key)) {
                 synchronized(queue) {
-                    // Check if tile with same key is already in queue
-                    val alreadyQueued = queue.any { it.key == tile.key }
-                    if (!alreadyQueued) {
+                    if (queuedKeys.add(tile.key)) {
                         queue.add(tile)
+                        queuedCount.incrementAndGet()
                     }
                 }
             }
@@ -51,29 +58,33 @@ class TileQueue {
     fun clear() {
         synchronized(queue) {
             queue.clear()
+            queuedKeys.clear()
+            queuedCount.set(0)
         }
         synchronized(loadingKeys) {
             loadingKeys.clear()
+            loadingCount.set(0)
         }
     }
 
     fun count(): Int {
-        return synchronized(queue) {
-            queue.size
-        }
+        return queuedCount.get()
     }
 
     private fun dequeue(): ImageTile? {
         return synchronized(queue) {
-            queue.poll()
+            queue.poll()?.also {
+                queuedKeys.remove(it.key)
+                queuedCount.decrementAndGet()
+            }
         }
     }
 
     suspend fun load(maxTotalLoads: Int, maxNewLoads: Int = maxTotalLoads) {
         val jobs = mutableListOf<ImageTile>()
         val tiles = desiredTiles ?: return
-        while (getLoadingCount() < maxTotalLoads && jobs.size < maxNewLoads && count() > 0) {
-            val tile = dequeue() ?: continue
+        while (loadingCount.get() < maxTotalLoads && jobs.size < maxNewLoads) {
+            val tile = dequeue() ?: break
             if (tile.tile !in tiles) {
                 // This tile is no longer wanted
                 continue
@@ -83,7 +94,11 @@ class TileQueue {
             val tileState = tile.state
             if (tileState == TileState.Idle || tileState == TileState.Stale) {
                 val shouldLoad = synchronized(loadingKeys) {
-                    loadingKeys.add(key)
+                    loadingKeys.add(key).also {
+                        if (it) {
+                            loadingCount.incrementAndGet()
+                        }
+                    }
                 }
                 if (shouldLoad) {
                     jobs.add(tile)
@@ -103,22 +118,30 @@ class TileQueue {
             }
         } finally {
             synchronized(loadingKeys) {
-                jobs.forEach { loadingKeys.remove(it.key) }
+                jobs.forEach {
+                    if (loadingKeys.remove(it.key)) {
+                        loadingCount.decrementAndGet()
+                    }
+                }
             }
         }
     }
 
     private fun onStateChange(tile: ImageTile) {
         synchronized(loadingKeys) {
-            loadingKeys.remove(tile.key)
+            if (loadingKeys.remove(tile.key)) {
+                loadingCount.decrementAndGet()
+            }
         }
         changeListener(tile)
     }
 
     fun getLoadingCount(): Int {
-        return synchronized(loadingKeys) {
-            loadingKeys.size
-        }
+        return loadingCount.get()
+    }
+
+    fun isEmpty(): Boolean {
+        return queuedCount.get() == 0 && loadingCount.get() == 0
     }
 
     private fun getPriority(tile: ImageTile): Double {
