@@ -432,7 +432,6 @@
     <ID>TooManyFunctions:AstronomyService.kt:AstronomyService</ID>
     <ID>TooManyFunctions:AugmentedRealityView.kt:AugmentedRealityView : CanvasView</ID>
     <ID>TooManyFunctions:BaseAstroListItemProducer.kt:BaseAstroListItemProducer : AstronomyListItemProducer</ID>
-    <ID>TooManyFunctions:BaseHooks.kt:com.kylecorry.trail_sense.shared.extensions.compose.BaseHooks.kt</ID>
     <ID>TooManyFunctions:BeaconDao.kt:BeaconDao</ID>
     <ID>TooManyFunctions:CachedTileDao.kt:CachedTileDao</ID>
     <ID>TooManyFunctions:CameraView.kt:CameraView : FrameLayout</ID>
