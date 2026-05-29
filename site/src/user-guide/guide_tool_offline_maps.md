@@ -1,3 +1,7 @@
+---
+title: "Offline Maps"
+---
+
 The Offline Maps tool can be used to import and manage maps for use without an Internet connection. This tool supports using images, PDFs, and Mapsforge (.map) files.
 
 ## Finding maps
@@ -25,7 +29,7 @@ If a map is imported from an image or non-geospatial PDF, Trail Sense will open 
 ## Calibrating photo maps
 To calibrate a photo map:
 
-1. Crop the photo to match the map's boundaries. Trail Sense will try to automatically detect the map in the image, but you can drag the crop box's corners to the map edges if needed. You can click 'Reset' to start the crop over and 'Preview' to visualize the cropped map. Changes to the crop cannot be made after clicking 'Next'.
+1. Crop the photo to match the map's boundaries by dragging the crop box's corners to the map edges. You can click 'Preview' to visualize the cropped map. Changes to the crop cannot be made after clicking 'Next'.
 2. Calibrate the map using two known locations:
     - Input the real-world location in the provided field, such as a trail sign, trailhead, or point of interest.
     - Tap on the map to select where the location is.
@@ -40,6 +44,7 @@ To calibrate a photo map:
 If Trail Sense reports that calibration is invalid, make sure the two map points are different, the two real-world coordinates are different, and the distance between the selected map points is roughly proportional to their real-world distance.
 
 ### Calibrating while hiking
+
 - Point 1: Choose the trail sign where you photographed the map or the trailhead.
 - Point 2: Select the first trail fork you encounter. If no trail fork is present, use a point of interest on the map, such as a lake, peak, or landmark.
 
@@ -174,3 +179,4 @@ If you prefer a video guide on using photo maps, here's a video by one of Trail 
 
 ## Accuracy
 Maps are only as accurate and current as the map file you imported or calibrated. Always carry a physical map and compass as a backup, and verify important navigation decisions with your surroundings.
+
