@@ -99,8 +99,9 @@ class ToolWidgetViewBinder(
                             layout.updateAppWidget(views)
                             layout.getChildAt(0)?.backgroundTintList =
                                 ColorStateList.valueOf(
-                                    Resources.androidBackgroundColorSecondary(
-                                        context
+                                    Resources.getAndroidColorAttr(
+                                        context,
+                                        com.google.android.material.R.attr.colorSurfaceContainerHighest
                                     )
                                 )
                         }
@@ -114,7 +115,12 @@ class ToolWidgetViewBinder(
                 widget.widgetView.getView(context, null)
             layout.updateAppWidget(widgetView)
             layout.getChildAt(0)?.backgroundTintList =
-                ColorStateList.valueOf(Resources.androidBackgroundColorSecondary(context))
+                ColorStateList.valueOf(
+                    Resources.getAndroidColorAttr(
+                        context,
+                        com.google.android.material.R.attr.colorSurfaceContainerHighest
+                    )
+                )
         }
 
         this.widgets.forEach {
@@ -172,11 +178,10 @@ class ToolWidgetViewBinder(
         this.widgets.clear()
     }
 
-    private fun onUpdate(data: Bundle): Boolean {
-        val widgetId = data.getString("widgetId") ?: return true
-        val widget = widgets.find { it.widget.id == widgetId } ?: return true
+    private suspend fun onUpdate(data: Bundle) = onMain {
+        val widgetId = data.getString("widgetId") ?: return@onMain
+        val widget = widgets.find { it.widget.id == widgetId } ?: return@onMain
         widget.updateFunction()
-        return true
     }
 
     private data class WidgetInstance(
