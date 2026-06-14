@@ -5,12 +5,13 @@ import android.hardware.Sensor
 import com.kylecorry.andromeda.notify.Notify
 import com.kylecorry.andromeda.sense.Sensors
 import com.kylecorry.trail_sense.R
+import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.tools.pedometer.actions.PausePedometerAction
 import com.kylecorry.trail_sense.tools.pedometer.actions.ResumePedometerAction
 import com.kylecorry.trail_sense.tools.pedometer.domain.StepTrackerService
 import com.kylecorry.trail_sense.tools.pedometer.infrastructure.DistanceAlerter
-import com.kylecorry.trail_sense.tools.pedometer.infrastructure.LegacyStepTrackerRepository
 import com.kylecorry.trail_sense.tools.pedometer.infrastructure.StepCounterService
+import com.kylecorry.trail_sense.tools.pedometer.infrastructure.persistence.StepTrackerRepo
 import com.kylecorry.trail_sense.tools.pedometer.infrastructure.subsystem.PedometerSubsystem
 import com.kylecorry.trail_sense.tools.pedometer.quickactions.QuickActionPedometer
 import com.kylecorry.trail_sense.tools.pedometer.services.PedometerToolService
@@ -42,7 +43,13 @@ object PedometerToolRegistration : ToolRegistration {
             settingsNavAction = R.id.calibrateOdometerFragment,
             initialize = { PedometerSubsystem.getInstance(it) },
             singletons = listOf(
-                { StepTrackerService(LegacyStepTrackerRepository(), ToolEventEmitter) }
+                {
+                    StepTrackerService(
+                        StepTrackerRepo.getInstance(it),
+                        ToolEventEmitter,
+                        UserPreferences(it).pedometer
+                    )
+                }
             ),
             quickActions = listOf(
                 ToolQuickAction(
