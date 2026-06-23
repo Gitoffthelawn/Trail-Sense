@@ -2,7 +2,6 @@ package com.kylecorry.trail_sense.tools.astronomy.domain
 
 import com.kylecorry.sol.math.Range
 import com.kylecorry.sol.math.optimization.GoldenSearchExtremaFinder
-import com.kylecorry.sol.math.trigonometry.Trigonometry
 import com.kylecorry.sol.science.astronomy.Astronomy
 import com.kylecorry.sol.science.astronomy.RiseSetTransitTimes
 import com.kylecorry.sol.science.astronomy.SunTimesMode
@@ -39,7 +38,7 @@ class AstronomyService(private val clock: Clock = Clock.systemDefaultZone()) {
     // PUBLIC MOON METHODS
 
     fun getCurrentMoonPhase(): MoonPhase {
-        return toStandardPhase(Astronomy.getMoonPhase(ZonedDateTime.now(clock)))
+        return getMoonPhase(ZonedDateTime.now(clock))
     }
 
     /**
@@ -51,11 +50,7 @@ class AstronomyService(private val clock: Clock = Clock.systemDefaultZone()) {
     }
 
     fun getMoonPhase(time: ZonedDateTime): MoonPhase {
-        return toStandardPhase(Astronomy.getMoonPhase(time))
-    }
-
-    private fun toStandardPhase(phase: MoonPhase): MoonPhase {
-        return phase.copy(angle = Trigonometry.normalizeAngle(360f - phase.angle))
+        return Astronomy.getMoonPhase(time)
     }
 
     fun isSuperMoon(date: LocalDate): Boolean {
@@ -139,6 +134,13 @@ class AstronomyService(private val clock: Clock = Clock.systemDefaultZone()) {
 
 
         return Astronomy.getMoonParallacticAngle(timeToUse, location)
+    }
+
+    fun getMoonAngularDiameter(
+        location: Coordinate,
+        time: ZonedDateTime = ZonedDateTime.now(clock)
+    ): Float {
+        return Astronomy.getMoonAngularDiameter(time, location).toFloat()
     }
 
     // PUBLIC SUN METHODS
@@ -237,6 +239,12 @@ class AstronomyService(private val clock: Clock = Clock.systemDefaultZone()) {
             location, time,
             withRefraction = true
         )
+    }
+
+    fun getSunAngularDiameter(
+        time: ZonedDateTime = ZonedDateTime.now(clock)
+    ): Float {
+        return Astronomy.getSunAngularDiameter(time).toFloat()
     }
 
     fun getMeteorShower(
