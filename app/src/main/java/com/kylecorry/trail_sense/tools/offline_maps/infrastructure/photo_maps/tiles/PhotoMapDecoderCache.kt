@@ -3,7 +3,7 @@ package com.kylecorry.trail_sense.tools.offline_maps.infrastructure.photo_maps.t
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
-import com.kylecorry.andromeda.core.cache.AppServiceRegistry
+import com.kylecorry.andromeda.core.cache.DependencyRegistry
 import com.kylecorry.andromeda.core.tryOrDefault
 import com.kylecorry.trail_sense.shared.canvas.tiles.ImageRegionDecoder
 import com.kylecorry.trail_sense.shared.canvas.tiles.PdfImageRegionDecoder
@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 class PhotoMapDecoderCache {
     private val loaders = ConcurrentHashMap<PhotoMap, RegionDecoder>()
     private val mutexes = ConcurrentHashMap<PhotoMap, Mutex>()
-    private val files = AppServiceRegistry.get<FileSubsystem>()
+    private val files = DependencyRegistry.get<FileSubsystem>()
 
     private fun getLock(map: PhotoMap): Mutex {
         return mutexes.getOrPut(map) { Mutex() }
@@ -32,7 +32,8 @@ class PhotoMapDecoderCache {
         return getLock(map).withLock {
             loaders[map]?.let { return it }
             val decoder = PdfImageRegionDecoder(Bitmap.Config.ARGB_8888)
-            decoder.init(context, files.uri(map.pdfFileName))
+            // This only operates on PDF maps, so pdfFile is guaranteed not null
+            decoder.init(context, files.uri(checkNotNull(map.pdfFile).path))
             loaders[map] = decoder
             decoder
         }
@@ -48,10 +49,10 @@ class PhotoMapDecoderCache {
             loaders[map]?.let { return it }
             val decoder = ImageRegionDecoder(context, Bitmap.Config.ARGB_8888)
 
-            if (map.isAsset) {
-                decoder.initFromAsset(map.filename.removePrefix(files.SCHEME_ASSETS))
+            if (map.imageFile.isAsset) {
+                decoder.initFromAsset(map.imageFile.path.removePrefix(FileSubsystem.SCHEME_ASSETS))
             } else {
-                decoder.init(files.uri(map.filename))
+                decoder.init(files.uri(map.imageFile.path))
             }
 
             loaders[map] = decoder
