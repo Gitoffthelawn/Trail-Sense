@@ -3,7 +3,7 @@ package com.kylecorry.trail_sense.tools.offline_maps.domain
 import com.kylecorry.sol.science.geology.CoordinateBounds
 import java.time.Instant
 
-interface OfflineMap : IMap {
+interface OfflineMap : OfflineMapCatalogItem {
     val files: List<OfflineMapFile>
     val visible: Boolean
     val state: OfflineMapState
@@ -13,4 +13,5 @@ interface OfflineMap : IMap {
      */
     val bounds: CoordinateBounds?
     val createdOn: Instant?
+    val type: OfflineMapType
 }

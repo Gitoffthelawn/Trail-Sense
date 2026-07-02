@@ -30,7 +30,7 @@ import com.kylecorry.trail_sense.shared.io.IntentUriPicker
 import com.kylecorry.trail_sense.shared.navigateWithAnimation
 import com.kylecorry.trail_sense.shared.sensors.SensorService
 import com.kylecorry.trail_sense.tools.guide.infrastructure.UserGuideUtils
-import com.kylecorry.trail_sense.tools.offline_maps.domain.IMap
+import com.kylecorry.trail_sense.tools.offline_maps.domain.OfflineMapCatalogItem
 import com.kylecorry.trail_sense.tools.offline_maps.domain.groups.MapGroup
 import com.kylecorry.trail_sense.tools.offline_maps.domain.photo_maps.PhotoMap
 import com.kylecorry.trail_sense.tools.offline_maps.domain.sort.ClosestMapSortStrategy
@@ -38,13 +38,13 @@ import com.kylecorry.trail_sense.tools.offline_maps.domain.sort.MapSortMethod
 import com.kylecorry.trail_sense.tools.offline_maps.domain.sort.MostRecentMapSortStrategy
 import com.kylecorry.trail_sense.tools.offline_maps.domain.sort.NameMapSortStrategy
 import com.kylecorry.trail_sense.tools.offline_maps.domain.trail_maps.TrailMap
-import com.kylecorry.trail_sense.tools.offline_maps.infrastructure.MapService
-import com.kylecorry.trail_sense.tools.offline_maps.infrastructure.create.CreateBlankMapCommand
-import com.kylecorry.trail_sense.tools.offline_maps.infrastructure.create.CreateMapFromCameraCommand
-import com.kylecorry.trail_sense.tools.offline_maps.infrastructure.create.CreateMapFromFileCommand
-import com.kylecorry.trail_sense.tools.offline_maps.infrastructure.create.CreateMapFromUriCommand
-import com.kylecorry.trail_sense.tools.offline_maps.infrastructure.create.ICreateMapCommand
-import com.kylecorry.trail_sense.tools.offline_maps.infrastructure.groups.MapGroupLoader
+import com.kylecorry.trail_sense.tools.offline_maps.domain.MapService
+import com.kylecorry.trail_sense.tools.offline_maps.ui.commands.create.CreateBlankMapCommand
+import com.kylecorry.trail_sense.tools.offline_maps.ui.commands.create.CreateMapFromCameraCommand
+import com.kylecorry.trail_sense.tools.offline_maps.ui.commands.create.CreateMapFromFileCommand
+import com.kylecorry.trail_sense.tools.offline_maps.ui.commands.create.CreateMapFromUriCommand
+import com.kylecorry.trail_sense.tools.offline_maps.ui.commands.create.ICreateMapCommand
+import com.kylecorry.trail_sense.tools.offline_maps.domain.groups.MapGroupLoader
 import com.kylecorry.trail_sense.tools.offline_maps.infrastructure.photo_maps.commands.MapCleanupCommand
 import com.kylecorry.trail_sense.tools.offline_maps.infrastructure.photo_maps.commands.PrintMapCommand
 import com.kylecorry.trail_sense.tools.offline_maps.infrastructure.photo_maps.reduce.HighQualityMapReducer
@@ -67,14 +67,14 @@ class OfflineMapListFragment : BoundFragment<FragmentOfflineMapListBinding>() {
     private val sensorService by lazy { SensorService(requireContext()) }
     private val gps by lazy { sensorService.getGPS() }
     private val prefs by lazy { UserPreferences(requireContext()) }
-    private val mapService by lazy { MapService.Companion.getInstance(requireContext()) }
+    private val mapService by lazy { MapService.getInstance(requireContext()) }
     private val mapLoader by lazy { MapGroupLoader(mapService.loader) }
-    private lateinit var manager: GroupListManager<IMap>
+    private lateinit var manager: GroupListManager<OfflineMapCatalogItem>
     private lateinit var mapper: IMapMapper
 
     private var sort = MapSortMethod.Closest
 
-    private var lastRoot: IMap? = null
+    private var lastRoot: OfflineMapCatalogItem? = null
     private var backPressedCallback: OnBackPressedCallback? = null
 
     private val uriPicker by lazy { IntentUriPicker(this, requireContext()) }
@@ -208,7 +208,7 @@ class OfflineMapListFragment : BoundFragment<FragmentOfflineMapListBinding>() {
         manager.refresh(true)
     }
 
-    private suspend fun sortMaps(maps: List<IMap>): List<IMap> = onDefault {
+    private suspend fun sortMaps(maps: List<OfflineMapCatalogItem>): List<OfflineMapCatalogItem> = onDefault {
         val strategy = when (sort) {
             MapSortMethod.Closest -> ClosestMapSortStrategy(gps.location, mapService.loader)
             MapSortMethod.MostRecent -> MostRecentMapSortStrategy(mapService.loader)
@@ -309,7 +309,7 @@ class OfflineMapListFragment : BoundFragment<FragmentOfflineMapListBinding>() {
         exportService.export(map)
     }
 
-    private fun rename(map: IMap) {
+    private fun rename(map: OfflineMapCatalogItem) {
         inBackground {
             RenameMapCommand(requireContext(), mapService).execute(map)
             manager.refresh()
@@ -323,28 +323,28 @@ class OfflineMapListFragment : BoundFragment<FragmentOfflineMapListBinding>() {
         }
     }
 
-    private fun move(map: IMap) {
+    private fun move(map: OfflineMapCatalogItem) {
         inBackground {
             MoveMapCommand(requireContext(), mapService).execute(map)
             manager.refresh()
         }
     }
 
-    private fun toggleVisibility(map: IMap) {
+    private fun toggleVisibility(map: OfflineMapCatalogItem) {
         inBackground {
             ToggleVisibilityMapCommand(mapService).execute(map)
             manager.refresh()
         }
     }
 
-    private fun delete(map: IMap) {
+    private fun delete(map: OfflineMapCatalogItem) {
         inBackground {
             DeleteMapCommand(requireContext(), mapService).execute(map)
             manager.refresh()
         }
     }
 
-    private fun view(map: IMap) {
+    private fun view(map: OfflineMapCatalogItem) {
         when (map) {
             is MapGroup -> manager.open(map.id)
             is PhotoMap -> findNavController().navigate(
