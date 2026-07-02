@@ -1,6 +1,6 @@
 # Plugin registration
 
-NOTE: Plugins are only available in debug mode right now and are not production ready. The interfaces are prone to changing. This message will be removed once plugins are stable.
+NOTE: Plugins are only available when enabled in Settings > Experimental and are not production ready.
 
 Trail Sense discovers plugin resource services through the Android service action `com.kylecorry.trail_sense.PLUGIN_SERVICE`.
 
@@ -65,7 +65,7 @@ The response payload must be JSON string matching this schema:
           "type": "string",
           "minLength": 1
           "maxLength": 100,
-          "description": "The user-visible layer name. Trail Sense prefixes this with the plugin name."
+          "description": "The user-visible layer name."
         },
         "layerType": {
           "type": "string",
