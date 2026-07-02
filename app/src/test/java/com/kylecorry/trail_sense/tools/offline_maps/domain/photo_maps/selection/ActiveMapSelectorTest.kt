@@ -4,9 +4,9 @@ import com.kylecorry.sol.math.geometry.Size
 import com.kylecorry.sol.science.geology.CoordinateBounds
 import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.trail_sense.tools.offline_maps.domain.OfflineMapFile
-import com.kylecorry.trail_sense.tools.offline_maps.domain.photo_maps.MapCalibrationPoint
+import com.kylecorry.trail_sense.tools.offline_maps.domain.photo_maps.calibration.MapCalibrationPoint
 import com.kylecorry.trail_sense.tools.offline_maps.domain.photo_maps.PhotoMapGeoreference
-import com.kylecorry.trail_sense.tools.offline_maps.domain.photo_maps.PercentCoordinate
+import com.kylecorry.andromeda.core.units.PercentCoordinate
 import com.kylecorry.trail_sense.tools.offline_maps.domain.photo_maps.PhotoMap
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
