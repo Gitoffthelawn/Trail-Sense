@@ -4,12 +4,14 @@ import android.util.Log
 import com.kylecorry.luna.concurrency.Parallel
 import com.kylecorry.trail_sense.shared.map_layers.ui.layers.IMapViewProjection
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.math.log
 
 class TileQueue {
     // Enable this to log what tiles are being loaded
     private val shouldLog = false
-    private var changeListener: (tile: ImageTile) -> Unit = {}
+    private var changeListener: suspend (tile: ImageTile) -> Unit = {}
     private val loadingKeys = mutableSetOf<String>()
     private val queuedKeys = mutableSetOf<String>()
     private val loadingCount = AtomicInteger(0)
@@ -23,6 +25,8 @@ class TileQueue {
 
     @Volatile
     private var desiredTiles: Set<Tile>? = null
+
+    private val dequeueLock = ReentrantLock()
 
     fun setMapProjection(projection: IMapViewProjection) {
         mapProjection = projection
@@ -54,7 +58,7 @@ class TileQueue {
     }
 
     fun clear() {
-        queue.clear()
+        dequeueLock.withLock { queue.clear() }
         synchronized(queuedKeys) {
             queuedKeys.clear()
         }
@@ -69,7 +73,7 @@ class TileQueue {
     }
 
     private fun dequeue(): ImageTile? {
-        val tile = queue.dequeue().firstOrNull()
+        val tile = dequeueLock.withLock { queue.dequeue().firstOrNull() }
         if (tile != null) {
             synchronized(queuedKeys) {
                 queuedKeys.remove(tile.key)
@@ -125,7 +129,7 @@ class TileQueue {
         }
     }
 
-    private fun onStateChange(tile: ImageTile) {
+    private suspend fun onStateChange(tile: ImageTile) {
         synchronized(loadingKeys) {
             if (loadingKeys.remove(tile.key)) {
                 loadingCount.decrementAndGet()
@@ -152,7 +156,7 @@ class TileQueue {
         return 65536 * log(resolution, 10.0) + distance / resolution
     }
 
-    fun setChangeListener(listener: (tile: ImageTile) -> Unit) {
+    fun setChangeListener(listener: suspend (tile: ImageTile) -> Unit) {
         changeListener = listener
     }
 
