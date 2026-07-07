@@ -22,6 +22,7 @@ class ToolMagnifierFragment : TrailSenseReactiveFragment(R.layout.fragment_tool_
         val (isCameraEnabled, setIsCameraEnabled) = useState(false)
         val (isFrozen, setIsFrozen) = useState(false)
         val (isCloseUpFocus, setIsCloseUpFocus) = useState(false)
+        val (hasFrozenBitmap, setHasFrozenBitmap) = useState(false)
 
         useResumeEffect {
             requestCamera {
@@ -33,8 +34,8 @@ class ToolMagnifierFragment : TrailSenseReactiveFragment(R.layout.fragment_tool_
         }
 
         // Start / stop camera
-        useEffect(isCameraEnabled, resetOnResume) {
-            if (isCameraEnabled) {
+        useEffect(isCameraEnabled, resetOnResume, hasFrozenBitmap) {
+            if (isCameraEnabled && !hasFrozenBitmap) {
                 cameraView.defaultZoomRatio = 2f
                 cameraView.minZoomRatio = 1f
                 cameraView.setShowTorch(true)
@@ -65,22 +66,31 @@ class ToolMagnifierFragment : TrailSenseReactiveFragment(R.layout.fragment_tool_
         }
 
         // Freeze frame
-        useEffect(isFrozen) {
+        useEffect(frozenFrameView, cameraView, focusToggleBtn, isFrozen) {
             if (isFrozen) {
+                focusToggleBtn.isVisible = false
                 val bitmap = cameraView.previewImage
                 if (bitmap != null) {
                     frozenFrameView.setImageBitmap(bitmap)
                     frozenFrameView.isVisible = true
+                    setHasFrozenBitmap(true)
                 } else {
                     setIsFrozen(false)
                 }
             } else {
+                focusToggleBtn.isVisible = true
                 frozenFrameView.isVisible = false
                 frozenFrameView.setImageBitmap(null)
+                setHasFrozenBitmap(false)
             }
             freezeBtn.setImageResource(
                 if (isFrozen) R.drawable.ic_baseline_play_arrow_24 else R.drawable.ic_pause
             )
+        }
+
+        useEffect(frozenFrameView){
+            // Consume touch events when the frozen frame view is visible to prevent interactions with the camera view behind it
+            frozenFrameView.setOnTouchListener { _, _ -> true }
         }
 
         // Button click listeners
