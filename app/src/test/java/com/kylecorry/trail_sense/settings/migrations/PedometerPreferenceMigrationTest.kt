@@ -6,8 +6,10 @@ import com.kylecorry.trail_sense.tools.pedometer.domain.IStepTrackerService
 import com.kylecorry.trail_sense.tools.pedometer.domain.StepTrackingPeriod
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.Duration
@@ -28,9 +30,17 @@ internal class PedometerPreferenceMigrationTest {
 
         assertEquals(
             listOf(
-                StepAddition(4, start),
-                StepAddition(3, Instant.parse("2026-06-14T11:00:00Z")),
-                StepAddition(3, Instant.parse("2026-06-14T12:00:00Z"))
+                StepAddition(4, start, Duration.ofSeconds(8)),
+                StepAddition(
+                    3,
+                    Instant.parse("2026-06-14T11:00:00Z"),
+                    Duration.ofSeconds(6)
+                ),
+                StepAddition(
+                    3,
+                    Instant.parse("2026-06-14T12:00:00Z"),
+                    Duration.ofSeconds(6)
+                )
             ),
             stepTracker.addedSteps
         )
@@ -49,9 +59,17 @@ internal class PedometerPreferenceMigrationTest {
 
         assertEquals(
             listOf(
-                StepAddition(30, start),
-                StepAddition(30, Instant.parse("2026-06-14T02:00:00Z")),
-                StepAddition(30, Instant.parse("2026-06-14T03:00:00Z"))
+                StepAddition(30, start, Duration.ofSeconds(60)),
+                StepAddition(
+                    30,
+                    Instant.parse("2026-06-14T02:00:00Z"),
+                    Duration.ofSeconds(60)
+                ),
+                StepAddition(
+                    30,
+                    Instant.parse("2026-06-14T03:00:00Z"),
+                    Duration.ofSeconds(60)
+                )
             ),
             stepTracker.addedSteps
         )
@@ -77,9 +95,17 @@ internal class PedometerPreferenceMigrationTest {
 
         assertEquals(
             listOf(
-                StepAddition(30, start),
-                StepAddition(30, Instant.parse("2026-06-14T02:00:00Z")),
-                StepAddition(30, Instant.parse("2026-06-14T03:00:00Z"))
+                StepAddition(30, start, Duration.ofSeconds(60)),
+                StepAddition(
+                    30,
+                    Instant.parse("2026-06-14T02:00:00Z"),
+                    Duration.ofSeconds(60)
+                ),
+                StepAddition(
+                    30,
+                    Instant.parse("2026-06-14T03:00:00Z"),
+                    Duration.ofSeconds(60)
+                )
             ),
             stepTracker.addedSteps
         )
@@ -95,7 +121,74 @@ internal class PedometerPreferenceMigrationTest {
         PedometerPreferenceMigration(stepTracker, prefs) { end }.migrate()
 
         assertEquals(
-            listOf(StepAddition(7, start)),
+            listOf(StepAddition(7, start, Duration.ZERO)),
+            stepTracker.addedSteps
+        )
+        verify(prefs).remove("cache_steps")
+        verify(prefs).remove("last_odometer_reset")
+    }
+
+    @Test
+    fun migrateCapsActiveTimeToBucketElapsedTime() = runBlocking {
+        val start = Instant.parse("2026-06-14T10:00:00Z")
+        val end = Instant.parse("2026-06-14T10:01:00Z")
+        val prefs = getPrefs(start, 100)
+        val stepTracker = FakeStepTrackerService()
+
+        PedometerPreferenceMigration(stepTracker, prefs) { end }.migrate()
+
+        assertEquals(
+            listOf(StepAddition(100, start, Duration.ofMinutes(1))),
+            stepTracker.addedSteps
+        )
+    }
+
+    @Test
+    fun migrateCheckpointsCompletedAdditionsForRetry() {
+        val start = Instant.parse("2026-06-14T10:15:00Z")
+        val end = Instant.parse("2026-06-14T12:30:00Z")
+        val prefs = getPrefs(start, 10)
+        val stepTracker = FakeStepTrackerService(failOnAddition = 2)
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                PedometerPreferenceMigration(stepTracker, prefs) { end }.migrate()
+            }
+        }
+
+        assertEquals(listOf(StepAddition(4, start, Duration.ofSeconds(8))), stepTracker.addedSteps)
+        verify(prefs).putLong("cache_steps", 6)
+        verify(prefs).putInstant(
+            "last_odometer_reset",
+            Instant.parse("2026-06-14T11:00:00Z")
+        )
+        verify(prefs, never()).remove("cache_steps")
+        verify(prefs, never()).remove("last_odometer_reset")
+
+        // Retry migration
+        whenever(prefs.getLong("cache_steps")).thenReturn(6)
+        whenever(prefs.getInstant("last_odometer_reset")).thenReturn(
+            Instant.parse("2026-06-14T11:00:00Z")
+        )
+
+        runBlocking {
+            PedometerPreferenceMigration(stepTracker, prefs) { end }.migrate()
+        }
+
+        assertEquals(
+            listOf(
+                StepAddition(4, start, Duration.ofSeconds(8)),
+                StepAddition(
+                    3,
+                    Instant.parse("2026-06-14T11:00:00Z"),
+                    Duration.ofSeconds(6)
+                ),
+                StepAddition(
+                    3,
+                    Instant.parse("2026-06-14T12:00:00Z"),
+                    Duration.ofSeconds(6)
+                )
+            ),
             stepTracker.addedSteps
         )
         verify(prefs).remove("cache_steps")
@@ -111,13 +204,16 @@ internal class PedometerPreferenceMigrationTest {
 
     private data class StepAddition(
         val steps: Long,
-        val time: Instant
+        val time: Instant,
+        val activeTime: Duration
     )
 
     private class FakeStepTrackerService(
-        private val openPeriod: StepTrackingPeriod? = null
+        private val openPeriod: StepTrackingPeriod? = null,
+        private val failOnAddition: Int? = null
     ) : IStepTrackerService {
         val addedSteps = mutableListOf<StepAddition>()
+        private var additionCount = 0
 
         override suspend fun getAllStepTrackingPeriods(): List<StepTrackingPeriod> {
             return emptyList()
@@ -138,7 +234,11 @@ internal class PedometerPreferenceMigrationTest {
         }
 
         override suspend fun addSteps(steps: Long, time: Instant, activeTime: Duration) {
-            addedSteps.add(StepAddition(steps, time))
+            additionCount++
+            if (additionCount == failOnAddition) {
+                throw IllegalStateException("Failed to add steps")
+            }
+            addedSteps.add(StepAddition(steps, time, activeTime))
         }
 
         override suspend fun deleteStepTrackingPeriod(period: StepTrackingPeriod) {
