@@ -12,8 +12,8 @@ import com.kylecorry.andromeda.notify.Notify
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.shared.FormatService
 import com.kylecorry.trail_sense.shared.UserPreferences
-import com.kylecorry.trail_sense.shared.alerts.AlarmAlerter
 import com.kylecorry.trail_sense.shared.alerts.NotificationSubsystem
+import com.kylecorry.trail_sense.shared.extensions.useAlarmSound
 import com.kylecorry.trail_sense.shared.permissions.requestScheduleExactAlarms
 import com.kylecorry.trail_sense.shared.preferences.PreferencesSubsystem
 import com.kylecorry.trail_sense.tools.turn_back.TurnBackToolRegistration
@@ -33,27 +33,27 @@ class TurnBackAlarmReceiver : BroadcastReceiver() {
             FormatService.getInstance(context).formatTime(returnTime, includeSeconds = false)
 
         val useAlarm = userPrefs.turnBack.useAlarm
+        val notificationChannel = if (useAlarm) {
+            TurnBackToolRegistration.NOTIFICATION_CHANNEL_TURN_BACK_ALARM
+        } else {
+            TurnBackToolRegistration.NOTIFICATION_CHANNEL_TURN_BACK_ALERT
+        }
         val notification = Notify.alert(
             context,
-            NOTIFICATION_CHANNEL_ID,
+            notificationChannel,
             context.getString(R.string.turn_back_notification_title),
             context.getString(R.string.turn_back_notification_description, formattedReturnTime),
             R.drawable.ic_undo,
             group = NOTIFIATION_GROUP,
-            autoCancel = true,
-            mute = useAlarm
+            autoCancel = true
         )
+        if (useAlarm) {
+            notification.useAlarmSound()
+        }
         DependencyRegistry.get<NotificationSubsystem>().send(
             TURN_BACK_NOTIFICATION_ID,
             notification
         )
-
-        val alarm = AlarmAlerter(
-            context,
-            useAlarm,
-            TurnBackToolRegistration.NOTIFICATION_CHANNEL_TURN_BACK_ALERT
-        )
-        alarm.alert()
 
         // Clear the times
         prefs.preferences.remove(TurnBackFragment.PREF_TURN_BACK_TIME)
