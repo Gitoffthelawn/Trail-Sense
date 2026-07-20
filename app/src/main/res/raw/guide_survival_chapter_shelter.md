@@ -3,7 +3,7 @@
 
 This chapter covers how to dress appropriately for the environment and build shelters to protect yourself from the elements.
 
-**This chapter is for informational purposes only and does not replace professional advice; use at your own risk and ensure compliance with local laws.**
+**This chapter provides general educational information only. It is not a substitute for professional training, emergency services, local guidance, or product/manufacturer instructions. Conditions, risks, laws, and recommended practices vary by location and situation; verify information before acting, follow local laws and instructions, and do not delay seeking help in an emergency. Do not rely on this guide or your phone as your only safety plan or means of communication.**
 
 ## Be prepared
 <!-- K: prepare, gear, knowledge, skill, emergency-space-blanket, space-blanket, blanket, poncho, socks, boots, shoes, sunglasses, cordage, sewing, needle, thread, jacket, pants, hat, gloves, hand-warmer, bag, pad, tent, tarp, hat, bandana, pillow, gloves, net, gaiters, hammock, tape -->
@@ -123,7 +123,7 @@ While gathering materials for your shelter, prefer wood and debris that are alre
 <!-- K: sleep, shelter, type -->
 <!-- S: Construct a shelter using natural materials or a tarp. Insulate the shelter with leaves, straw, or clothing. -->
 
-You can construct various shelters using tarps, ponchos, or natural elements. To retain heat, build the smallest shelter that meets your needs and position it against prevailing winds to avoid excess heat loss. Before sleeping in your shelter, make sure there is adequate airflow to manage condensation and smoke from your fire.
+You can construct various shelters using tarps, ponchos, or natural elements. To retain heat, build the smallest shelter that meets your needs and position it against prevailing winds to avoid excess heat loss. Before sleeping in your shelter, make sure there is adequate airflow to manage condensation and smoke from your fire (do not build your fire in your shelter).
 
 ### Lean-to
 <!-- K: lean-to, build, ridgeline, tarp -->
@@ -152,7 +152,7 @@ A-frames are a more enclosed shelter that provides better protection from the el
 ### Cave
 <!-- K: cave -->
 
-Caves offer protection from the elements and require minimal effort to use. Be careful when entering caves, though, as they can be home to animals or have poor ventilation. Avoid lighting a fire if possible, since smoke can accumulate; if you do light a fire, do it away from the entrance so the smoke isn't blown back into the cave.
+Caves offer protection from the elements and require minimal effort to use. Be careful when entering caves, though, as they can be home to animals or have poor ventilation. Avoid lighting a fire if possible, since smoke and carbon monoxide can accumulate.
 
 ### Emergency space blanket
 <!-- K: emergency-space-blanket, space-blanket, blanket -->

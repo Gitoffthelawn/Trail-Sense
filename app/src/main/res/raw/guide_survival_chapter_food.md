@@ -3,7 +3,7 @@
 
 Food gives you energy but is a low priority in most survival situations since you can go weeks without it. If you haven't eaten in a while, focus on foraging for bugs, shellfish, and aggregate berries.
 
-**This chapter is for informational purposes only and does not replace professional advice; use at your own risk and ensure compliance with local laws.**
+**This chapter provides general educational information only. It is not a substitute for professional training, emergency services, local guidance, or product/manufacturer instructions. Conditions, risks, laws, and recommended practices vary by location and situation; verify information before acting, follow local laws and instructions, and do not delay seeking help in an emergency. Do not rely on this guide or your phone as your only safety plan or means of communication.**
 
 ## Be prepared
 <!-- K: prepare, gear, knowledge, skill, nuts, seeds, dried, fruit, jerky, energy, bar, mre, can, knife, multitool, bag, canister, utensil, stove, fuel -->
@@ -57,12 +57,12 @@ The average person needs around 2,000 calories per day. Balance carbohydrates, p
 ### Storage
 <!-- K: storage, spoil, contamination, airtight, zipper, bag -->
 
-Food should be stored in airtight containers to prevent spoilage and contamination. Do not pack foods that spoil quickly or require refrigeration. If you bring zipper storage bags, you can also use them for water procurement.
+Food should be stored in airtight containers to reduce the chance of spoilage and contamination. Do not pack foods that spoil quickly or require refrigeration. If you bring zipper storage bags, you can also use them for water procurement.
 
 ### Rationing
 <!-- K: ration -->
 
-If you are in a survival situation, ration your food to make it last longer. Eat two-thirds of your food in the first half of your survival situation (about 2-3 days after your expected return date) and the remaining third in the following days. Eating food will give you the energy to construct a shelter and plan.
+If you are in a survival situation, ration your food to make it last longer. Plan to eat most of your food by your expected return date, and eat the remaining 10 - 30% of your food during the days following. Eating food will give you the energy to construct a shelter and plan.
 
 ### Starvation
 <!-- K: starvation -->
@@ -350,6 +350,6 @@ See the Shelter chapter for details on how to tie knots.
 ### Bear canisters
 <!-- K: canister, box, bear -->
 
-A bear canister is a rigid plastic container used to store food. It is bear-proof and can be left on the ground. Some campsites may provide a large metal bear box for storing food.
+A bear canister is a bear-resistant rigid container used to store food that can be left on the ground. Some campsites may provide a large metal bear box for storing food.
 
 Ideally, the location where you leave this container should be 20–70 yards/meters downwind from your shelter. You may find tooth or claw marks on the canister in the morning, and it may be some distance from where you left it. Using brightly colored stickers on the outside may help you find it.
