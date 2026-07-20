@@ -1,3 +1,7 @@
+---
+title: "9 - References"
+---
+
 <!-- K: references, sources, citations, books, manuals, guidelines, websites -->
 This chapter lists the resources which were referenced in the creation of this survival guide. These resources provide additional information and may be more up-to-date than the information contained in this guide. They are not affiliated with this guide.
 
@@ -29,3 +33,4 @@ This chapter lists the resources which were referenced in the creation of this s
 - U.S. National Weather Service ([weather.gov](https://www.weather.gov))
 - Wilderness Medical Society ([wms.org](https://wms.org))
 - World Health Organization (WHO) ([who.int](https://www.who.int))
+
