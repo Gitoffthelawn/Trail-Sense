@@ -1263,7 +1263,7 @@
     <string name="forest">Bossen</string>
     <string name="desert">Woestijnen</string>
     <string name="grassland">Graslanden</string>
-    <string name="wetland">Moerasgebied</string>
+    <string name="wetland">Moeras</string>
     <string name="urban">Stedelijk</string>
     <string name="marine">Maritiem</string>
     <string name="freshwater">Zoetwater</string>
@@ -1639,4 +1639,7 @@
         <item quantity="one">Apparaatklok is %d seconde snel</item>
         <item quantity="other">Apparaatklok is %d seconden snel</item>
     </plurals>
+    <string name="export_logs">Logs exporteren</string>
+    <string name="exporting">Bezig met exporteren</string>
+    <string name="export_failed">Exporteren mislukt</string>
 </resources>
