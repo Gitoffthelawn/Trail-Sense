@@ -705,7 +705,6 @@
     <string name="pref_backtrack_interval" translatable="false">pref_backtrack_interval</string>
     <string name="importing_map">Importing map</string>
     <string name="scanning_image">Scanning image</string>
-    <string name="error_importing_map">Error importing map</string>
     <string name="import_gpx">Import GPX</string>
     <string name="sleep_timer">Sleep timer</string>
     <string name="pref_odometer_reset_daily_title">Reset daily</string>
@@ -918,6 +917,8 @@
     <string name="no_permission">Permission not granted</string>
     <string name="diagnostics">Diagnostics</string>
     <string name="export_logs">Export logs</string>
+    <string name="external_storage">External storage</string>
+    <string name="external_storage_diagnostic_instructions">The system file picker does not have permission to access files on your device. This can prevent Trail Sense from opening or saving files you choose. Enable “Allow access to manage all files” for the system file picker (it might be called "External Storage").</string>
     <string name="pref_diagnostics" translatable="false">pref_diagnostics</string>
     <string name="battery_usage_restricted">Battery usage restricted</string>
     <string name="overridden">Overridden</string>
@@ -1471,9 +1472,11 @@
     <!-- Whether to use path elevations on the augmented reality tool -->
     <string name="use_path_elevation">Use path elevation</string>
     <string name="pref_use_filtered_gps" translatable="false">pref_use_filtered_gps</string>
+    <string name="pref_use_legacy_file_picker" translatable="false">pref_use_legacy_file_picker</string>
     <string name="pref_use_metal_audio" translatable="false">pref_use_metal_audio</string>
     <string name="pref_no_use_metal_vibration" translatable="false">pref_no_use_metal_vibration</string>
     <string name="smooth_gps_readings">Smooth GPS readings</string>
+    <string name="use_legacy_file_picker">Use legacy file picker</string>
     <string name="pref_widget_icon_compatibility" translatable="false">pref_widget_icon_compatibility</string>
     <string name="widget_icon_compatibility_mode">Widget icon compatibility mode</string>
     <string name="widget_icon_compatibility_mode_summary">Fixes missing widget icons on some devices</string>
@@ -2001,4 +2004,7 @@
     <string name="copy_to_trail_sense">Copy to Trail Sense</string>
     <!--%s is the name of the field guide page the sighting is being recorded for-->
     <string name="recording_sighting_for_page">Recording \'%s\' sighting</string>
+    <string name="map_error_invalid_map_file">Invalid map file</string>
+    <string name="map_error_access_denied">Access to map file was denied</string>
+    <string name="map_error_unable_to_copy">Unable to copy map file</string>
 </resources>
