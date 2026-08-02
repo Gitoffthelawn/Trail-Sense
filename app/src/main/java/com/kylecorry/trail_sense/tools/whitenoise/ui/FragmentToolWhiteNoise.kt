@@ -5,11 +5,13 @@ import com.google.android.material.materialswitch.MaterialSwitch
 import com.kylecorry.andromeda.core.ui.useService
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.shared.extensions.TrailSenseReactiveFragment
+import com.kylecorry.trail_sense.shared.extensions.useToolEventListener
 import com.kylecorry.trail_sense.shared.preferences.PreferencesSubsystem
 import com.kylecorry.trail_sense.shared.views.DurationInputView
 import com.kylecorry.trail_sense.shared.views.MaterialSpinnerView
 import com.kylecorry.trail_sense.shared.views.TileButton
 import com.kylecorry.trail_sense.shared.withId
+import com.kylecorry.trail_sense.tools.whitenoise.WhiteNoiseToolRegistration
 import com.kylecorry.trail_sense.tools.whitenoise.infrastructure.SleepSound
 import com.kylecorry.trail_sense.tools.whitenoise.infrastructure.WhiteNoiseService
 import java.time.Duration
@@ -41,6 +43,8 @@ class FragmentToolWhiteNoise :
                 SleepSound.Fan to getString(R.string.sleep_sound_fan)
             )
         }
+
+        val (playbackJustFinished, setPlaybackJustFinished) = useState(false)
 
         // Effects
         useEffect(whiteNoiseButtonView, WhiteNoiseService.isRunning) {
@@ -100,6 +104,18 @@ class FragmentToolWhiteNoise :
             val stopTime = cache.getInstant(WhiteNoiseService.CACHE_KEY_OFF_TIME)
             if (stopTime != null && stopTime > Instant.now()) {
                 sleepTimerPickerView.updateDuration(Duration.between(Instant.now(), stopTime))
+            }
+        }
+
+        useToolEventListener(WhiteNoiseToolRegistration.BROADCAST_PLAYBACK_FINISHED) {
+            setPlaybackJustFinished(true)
+        }
+
+        useEffect(sleepTimerSwitchView, sleepTimerPickerView, playbackJustFinished) {
+            if (playbackJustFinished) {
+                sleepTimerSwitchView.isChecked = false
+                sleepTimerPickerView.isVisible = false
+                setPlaybackJustFinished(false)
             }
         }
     }
