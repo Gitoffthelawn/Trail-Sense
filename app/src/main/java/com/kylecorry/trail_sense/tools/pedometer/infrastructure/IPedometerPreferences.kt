@@ -1,4 +1,4 @@
-package com.kylecorry.trail_sense.settings.infrastructure
+package com.kylecorry.trail_sense.tools.pedometer.infrastructure
 
 import com.kylecorry.sol.units.Distance
 import com.kylecorry.trail_sense.tools.pedometer.domain.AveragePaceTimeMode
@@ -7,7 +7,7 @@ import java.time.Duration
 interface IPedometerPreferences {
     var isEnabled: Boolean
     val resetDaily: Boolean
-    var strideLength: Distance
+    var stepLength: Distance
     var alertDistance: Distance?
     val useAlarmForDistanceAlert: Boolean
     var stepHistory: Duration
