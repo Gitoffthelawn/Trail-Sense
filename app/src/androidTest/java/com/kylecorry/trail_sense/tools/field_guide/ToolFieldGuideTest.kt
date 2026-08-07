@@ -139,11 +139,10 @@ class ToolFieldGuideTest : ToolTestBase(Tools.FIELD_GUIDE) {
         input("Notes", "Quick action sighting")
         click(toolbarButton(R.id.title, Side.Right))
 
-        click("A Test")
-        hasText("Sightings (1)")
-        click("Sightings (1)")
+        // The quick action deep link returns to the sightings list after saving.
         hasText("Quick action sighting")
         back()
+        hasText("Sightings (1)")
         back()
     }
 
@@ -216,7 +215,9 @@ class ToolFieldGuideTest : ToolTestBase(Tools.FIELD_GUIDE) {
     private fun canLogSightings() {
         click("Sightings (0)")
         hasText("No sightings")
+        hasText(R.id.toolbar_subtitle, "Ant", exact = true)
         click(R.id.create_btn)
+        hasText(R.id.toolbar_subtitle, "Ant", exact = true)
         click(R.id.time)
         pickDate(2025, 1, 1)
         pickTime(6, 0, true)
