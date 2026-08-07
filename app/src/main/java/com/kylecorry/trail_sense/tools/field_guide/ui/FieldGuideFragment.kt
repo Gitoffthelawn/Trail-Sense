@@ -45,6 +45,7 @@ class FieldGuideFragment : TrailSenseReactiveFragment(R.layout.fragment_tool_fie
         val editPage = useEditPage()
         val viewPage = useViewPage()
         val deletePage = useDeletePage(triggerReload)
+        val hidePage = useHidePage(triggerReload)
 
         // One time setup
         useShowDisclaimer(
@@ -61,12 +62,14 @@ class FieldGuideFragment : TrailSenseReactiveFragment(R.layout.fragment_tool_fie
             viewPage,
             editPage,
             deletePage,
+            hidePage,
             resetOnResume
         ) { action, page ->
             when (action) {
                 FieldGuidePageListItemActionType.View -> viewPage(page)
                 FieldGuidePageListItemActionType.Edit -> editPage(page)
                 FieldGuidePageListItemActionType.Delete -> deletePage(page)
+                FieldGuidePageListItemActionType.Hide -> hidePage(page)
             }
         }
 
@@ -102,12 +105,34 @@ class FieldGuideFragment : TrailSenseReactiveFragment(R.layout.fragment_tool_fie
 
     private fun useDeletePage(triggerReload: () -> Unit): (page: FieldGuidePage) -> Unit {
         val service = useService<FieldGuideService>()
-        return useCallback(service, triggerReload) { page ->
-            dialog(getString(R.string.delete), page.name) { cancelled ->
+        val formatter = useService<FieldGuideFormatService>()
+        return useCallback(service, triggerReload, formatter) { page ->
+            dialog(getString(R.string.delete), formatter.formatName(page)) { cancelled ->
                 if (!cancelled) {
                     inBackground {
                         service.deletePage(page)
                         triggerReload()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun useHidePage(triggerReload: () -> Unit): (page: FieldGuidePage) -> Unit {
+        val service = useService<FieldGuideService>()
+        val formatter = useService<FieldGuideFormatService>()
+        return useCallback(service, triggerReload, formatter) { page ->
+            val message = getString(
+                R.string.hide_field_guide_page_message,
+                formatter.formatName(page)
+            )
+            dialog(getString(R.string.hide), message) { cancelled ->
+                if (!cancelled) {
+                    inBackground {
+                        val success = service.setPageHidden(page.id, true)
+                        if (success) {
+                            triggerReload()
+                        }
                     }
                 }
             }

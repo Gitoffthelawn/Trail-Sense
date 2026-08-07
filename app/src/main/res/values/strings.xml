@@ -104,6 +104,15 @@
     <string name="maps">Maps</string>
     <!--Navigation Tab - Create beacon-->
     <string name="name">Name</string>
+    <string name="scientific_name">Scientific name</string>
+    <string name="field_guide_name_display">Name display</string>
+    <string name="pref_field_guide_name_display" translatable="false">pref_field_guide_name_display</string>
+    <string name="built_in_pages">Built-in pages</string>
+    <string name="pref_field_guide_built_in_pages_holder" translatable="false">pref_field_guide_built_in_pages_holder</string>
+    <string name="pref_field_guide_hidden_pages" translatable="false">pref_field_guide_hidden_pages</string>
+    <string name="hide_field_guide_page_message">%1$s\n\nYou can unhide this page in the Field Guide settings.</string>
+    <string name="common_name">Common name</string>
+    <string name="both_names">Both names</string>
     <string name="beacon_invalid_name">Invalid name</string>
     <string name="beacon_comment">Notes (Optional)</string>
     <!--Weather Tab-->
@@ -1936,6 +1945,11 @@
     <string name="pref_lock_bearing_to_location" translatable="false">pref_lock_bearing_to_location</string>
     <string name="lock_bearing_to_location">Lock bearing to location</string>
     <string name="lock_bearing_to_location_description">Lock the bearing line to your starting location</string>
+    <string name="pref_bearing_distance_holder" translatable="false">pref_bearing_distance_holder</string>
+    <string name="pref_bearing_distance" translatable="false">pref_bearing_distance</string>
+    <string name="bearing_length">Bearing length</string>
+    <string name="bearing_length_description">The length of the bearing line when a bearing is active</string>
+    <string name="bearing_length_max">Max: %s</string>
     <string name="pref_show_astronomy_bands_title">Show sunrise/set bands</string>
     <string name="pref_show_astronomy_bands" translatable="false">pref_show_astronomy_bands</string>
     <string name="settings_copied">Settings copied</string>

@@ -6,10 +6,12 @@ import com.kylecorry.trail_sense.shared.withId
 data class FieldGuidePage(
     override val id: Long,
     val name: String = "",
+    val scientificName: String? = null,
     val images: List<String> = emptyList(),
     val directTags: List<FieldGuidePageTag> = emptyList(),
     val notes: String? = null,
-    val isReadOnly: Boolean = false,
+    val isBuiltIn: Boolean = false,
+    val isHidden: Boolean = false,
 
     // User specific fields (not exported)
     val sightings: List<Sighting> = emptyList(),

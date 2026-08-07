@@ -5,6 +5,7 @@ import androidx.navigation.fragment.findNavController
 import com.kylecorry.andromeda.core.cache.DependencyRegistry
 import com.kylecorry.trail_sense.R
 import com.kylecorry.trail_sense.main.getAppService
+import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.extensions.getLongProperty
 import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.MapLayerDefinition
 import com.kylecorry.trail_sense.shared.map_layers.preferences.repo.MapLayerPreference
@@ -14,6 +15,7 @@ import com.kylecorry.trail_sense.tools.field_guide.infrastructure.FieldGuideRepo
 import com.kylecorry.trail_sense.tools.field_guide.map_layers.FieldGuideSightingGeoJsonSource
 import com.kylecorry.trail_sense.tools.field_guide.quickactions.QuickActionRecordSighting
 import com.kylecorry.trail_sense.tools.field_guide.ui.FieldGuideDeepLinks
+import com.kylecorry.trail_sense.tools.field_guide.ui.FieldGuideFormatService
 import com.kylecorry.trail_sense.tools.tools.infrastructure.Tool
 import com.kylecorry.trail_sense.tools.tools.infrastructure.ToolBroadcast
 import com.kylecorry.trail_sense.tools.tools.infrastructure.ToolCategory
@@ -45,8 +47,10 @@ object FieldGuideToolRegistration : ToolRegistration {
                 )
             ),
             guideId = R.raw.guide_tool_field_guide,
+            settingsNavAction = R.id.fieldGuideSettingsFragment,
             initialize = {
                 DependencyRegistry.addSingleton(FieldGuideRepo.getInstance(it))
+                DependencyRegistry.addSingleton(FieldGuideFormatService(getAppService<UserPreferences>()))
                 DependencyRegistry.addSingleton(
                     FieldGuideService(
                         it,
@@ -56,7 +60,10 @@ object FieldGuideToolRegistration : ToolRegistration {
                 )
             },
             broadcasts = listOf(
-                ToolBroadcast(BROADCAST_SIGHTING_RECORDED, "Sighting recorded")
+                ToolBroadcast(BROADCAST_SIGHTING_RECORDED, "Sighting recorded"),
+                ToolBroadcast(BROADCAST_PAGE_ADDED, "Field guide page added"),
+                ToolBroadcast(BROADCAST_PAGE_CHANGED, "Field guide page changed"),
+                ToolBroadcast(BROADCAST_PAGE_DELETED, "Field guide page deleted")
             ),
             diagnostics = listOf(
                 ToolDiagnosticFactory.externalStorage(context)
@@ -91,11 +98,19 @@ object FieldGuideToolRegistration : ToolRegistration {
                         FieldGuideDeepLinks.navigateToSighting(navController, fieldGuidePageId, fieldGuideSightingId)
                     },
                     geoJsonSource = ::FieldGuideSightingGeoJsonSource,
-                    refreshBroadcasts = listOf(BROADCAST_SIGHTING_RECORDED)
+                    refreshBroadcasts = listOf(
+                        BROADCAST_SIGHTING_RECORDED,
+                        BROADCAST_PAGE_ADDED,
+                        BROADCAST_PAGE_CHANGED,
+                        BROADCAST_PAGE_DELETED
+                    )
                 )
             )
         )
     }
 
     const val BROADCAST_SIGHTING_RECORDED = "field-guide-broadcast-sighting-recorded"
+    const val BROADCAST_PAGE_ADDED = "field-guide-broadcast-page-added"
+    const val BROADCAST_PAGE_CHANGED = "field-guide-broadcast-page-changed"
+    const val BROADCAST_PAGE_DELETED = "field-guide-broadcast-page-deleted"
 }

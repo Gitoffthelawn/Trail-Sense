@@ -19,12 +19,14 @@ import com.kylecorry.trail_sense.tools.field_guide.domain.FieldGuidePage
 enum class FieldGuidePageListItemActionType {
     View,
     Edit,
-    Delete
+    Delete,
+    Hide
 }
 
 class FieldGuidePageListItemMapper(
     private val context: Context,
     private val viewLifecycleOwner: LifecycleOwner,
+    private val formatter: FieldGuideFormatService,
     private val showMenu: Boolean = true,
     private val action: (FieldGuidePageListItemActionType, FieldGuidePage) -> Unit
 ) : ListItemMapper<FieldGuidePage> {
@@ -37,7 +39,7 @@ class FieldGuidePageListItemMapper(
                 ?: ""
         return ListItem(
             value.id,
-            value.name,
+            formatter.formatName(value),
             firstSentence.take(200),
             icon = AsyncListIcon(
                 viewLifecycleOwner,
@@ -47,18 +49,27 @@ class FieldGuidePageListItemMapper(
                 clearOnPause = true
             ),
             menu = if (showMenu) listOfNotNull(
-                if (!value.isReadOnly) ListMenuItem(context.getString(R.string.edit)) {
+                if (!value.isBuiltIn) ListMenuItem(context.getString(R.string.edit)) {
                     action(
                         FieldGuidePageListItemActionType.Edit,
                         value
                     )
                 } else null,
-                if (!value.isReadOnly) ListMenuItem(context.getString(R.string.delete)) {
-                    action(
-                        FieldGuidePageListItemActionType.Delete,
-                        value
-                    )
-                } else null
+                if (!value.isBuiltIn) {
+                    ListMenuItem(context.getString(R.string.delete)) {
+                        action(
+                            FieldGuidePageListItemActionType.Delete,
+                            value
+                        )
+                    }
+                } else {
+                    ListMenuItem(context.getString(R.string.hide)) {
+                        action(
+                            FieldGuidePageListItemActionType.Hide,
+                            value
+                        )
+                    }
+                }
             ) else emptyList()
         ) {
             action(FieldGuidePageListItemActionType.View, value)
