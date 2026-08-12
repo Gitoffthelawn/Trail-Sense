@@ -431,8 +431,6 @@
     <string name="unit_feet">Feet</string>
     <string name="unit_miles">Miles</string>
     <string name="unit_nautical_miles">Nautical miles</string>
-    <string name="guide_recommended_apps">Recommended Apps</string>
-    <string name="guide_recommended_apps_description">Useful apps for survival situations</string>
     <string name="guide_map_layers">Map Layers</string>
     <string name="pref_privacy_policy_title">Privacy policy</string>
     <string name="pref_privacy_policy" translatable="false">pref_privacy_policy</string>
@@ -800,6 +798,8 @@
     <string name="pref_unit_settings" translatable="false">pref_unit_settings</string>
     <string name="pref_experimental_metal_direction" translatable="false">pref_experimental_metal_direction</string>
     <string name="pref_experimental_metal_direction_title">Show metal direction</string>
+    <string name="pref_large_tile_cache" translatable="false">pref_large_tile_cache</string>
+    <string name="pref_large_tile_cache_title">Use large map tile cache</string>
     <string name="pref_plugins_enabled" translatable="false">pref_plugins_enabled</string>
     <string name="pref_experimental_settings" translatable="false">pref_experimental_settings</string>
     <string name="pref_sensor_settings" translatable="false">pref_sensor_settings</string>
