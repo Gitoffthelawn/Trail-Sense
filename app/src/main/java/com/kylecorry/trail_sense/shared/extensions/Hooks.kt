@@ -60,7 +60,7 @@ import kotlin.coroutines.CoroutineContext
 
 // Sensors
 
-fun ReactiveComponent.useGPSSensor(frequency: Duration = Duration.ofMillis(20)): IGPS {
+fun ReactiveComponent.useGPSSensor(frequency: Duration = SensorService.DEFAULT_GPS_FREQUENCY): IGPS {
     val sensors = useService<SensorService>()
     return useMemo(sensors, frequency.seconds, frequency.nano) { sensors.getGPS(frequency) }
 }
@@ -77,9 +77,9 @@ fun ReactiveComponent.useCellSignalSensor(
     }
 }
 
-fun ReactiveAndromedaFragment.useCompassSensor(): ICompass {
+fun ReactiveAndromedaFragment.useCompassSensor(delay: Int = SensorService.MOTION_SENSOR_DELAY): ICompass {
     val sensors = useService<SensorService>()
-    return useMemo(sensors) { sensors.getCompass() }
+    return useMemo(sensors, delay) { sensors.getCompass(delay = delay) }
 }
 
 fun ReactiveAndromedaFragment.useAltimeterSensor(gps: IGPS? = null): IAltimeter {
@@ -97,7 +97,7 @@ fun ReactiveComponent.useSpeedometerSensor(gps: IGPS? = null): ISpeedometer {
 }
 
 // Common sensor readings
-fun ReactiveAndromedaFragment.useGPSLocation(frequency: Duration = Duration.ofMillis(20)): Pair<Coordinate, Float?> {
+fun ReactiveAndromedaFragment.useGPSLocation(frequency: Duration = SensorService.DEFAULT_GPS_FREQUENCY): Pair<Coordinate, Float?> {
     val gps = useGPSSensor(frequency)
     return useTopic(gps, gps.location to gps.horizontalAccuracy) {
         it.location to it.horizontalAccuracy
@@ -105,11 +105,12 @@ fun ReactiveAndromedaFragment.useGPSLocation(frequency: Duration = Duration.ofMi
 }
 
 fun ReactiveAndromedaFragment.useNavigationSensors(
-    gpsFrequency: Duration = Duration.ofMillis(20),
-    trueNorth: Boolean = false
+    gpsFrequency: Duration = SensorService.DEFAULT_GPS_FREQUENCY,
+    trueNorth: Boolean = false,
+    compassDelay: Int = SensorService.MOTION_SENSOR_DELAY
 ): NavigationSensorValues {
     val gps = useGPSSensor(gpsFrequency)
-    val compass = useCompassSensor()
+    val compass = useCompassSensor(compassDelay)
     val altimeter = useAltimeterSensor(gps)
     val speedometer = useSpeedometerSensor(gps)
     val prefs = useService<UserPreferences>()

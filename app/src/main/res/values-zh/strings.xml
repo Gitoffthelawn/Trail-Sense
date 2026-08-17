@@ -1626,8 +1626,6 @@
     <string name="bearing_length_max">最大：%s</string>
     <string name="delete_offline_map_group_message">将删除 %s 及其所有地图。</string>
     <string name="until_sunset">直到日落</string>
-    <string name="bearing_length">轴承长度</string>
-    <string name="bearing_length_description">轴承工作时的轴承线长度</string>
     <string name="scientific_name">学名</string>
     <string name="field_guide_name_display">名称显示</string>
     <string name="built_in_pages">内置页面</string>
@@ -1635,4 +1633,7 @@
     <string name="common_name">通用名</string>
     <string name="both_names">两种名称</string>
     <string name="pref_large_tile_cache_title">地图图块使用更多缓存</string>
+    <string name="bubble_level_angles">X: %1$s\nY: %2$s\n角度: %3$s</string>
+    <string name="location_permission">位置权限</string>
+    <string name="location_required_for_cell_signals">需要位置权限来查看附近的手机信号</string>
 </resources>

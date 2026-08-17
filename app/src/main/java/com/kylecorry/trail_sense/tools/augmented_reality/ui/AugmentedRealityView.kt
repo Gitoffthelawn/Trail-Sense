@@ -54,7 +54,6 @@ import com.kylecorry.trail_sense.tools.augmented_reality.domain.position.ARPoint
 import com.kylecorry.trail_sense.tools.augmented_reality.domain.position.AugmentedRealityCoordinate
 import com.kylecorry.trail_sense.tools.augmented_reality.ui.layers.ARLayer
 import kotlinx.coroutines.Dispatchers
-import java.time.Duration
 import kotlin.math.atan2
 
 // TODO: Notify location change
@@ -89,12 +88,13 @@ class AugmentedRealityView : CanvasView {
     private val userPrefs = UserPreferences(context)
     private val sensors = SensorService(context)
     private var calibrationBearingOffset: Float = 0f
-    val geomagneticOrientationSensor = sensors.getOrientation()
-    val gyroOrientationSensor = sensors.getGyroscope()
+    val geomagneticOrientationSensor =
+        sensors.getOrientation(SensorService.FAST_MOTION_SENSOR_DELAY)
+    val gyroOrientationSensor = sensors.getGyroscope(SensorService.FAST_MOTION_SENSOR_DELAY)
     private var customOrientationSensor: IOrientationSensor? = null
     private val hasGyro = Sensors.hasGyroscope(context)
     var orientationSensor = geomagneticOrientationSensor
-    val gps = sensors.getGPS(frequency = Duration.ofMillis(200))
+    val gps = sensors.getGPS(frequency = SensorService.NAVIGATION_GPS_FREQUENCY)
     private val altimeter = sensors.getAltimeter(gps = gps)
     private val declinationProvider = DeclinationFactory().getDeclinationStrategy(
         userPrefs,

@@ -80,8 +80,7 @@ class SensorService(ctx: Context) {
     private var context = ctx.applicationContext
     private val userPrefs by lazy { UserPreferences(context) }
 
-    // TODO: This should control update frequency
-    fun getGPS(frequency: Duration = Duration.ofMillis(20)): ISatelliteGPS {
+    fun getGPS(frequency: Duration = DEFAULT_GPS_FREQUENCY): ISatelliteGPS {
 
         val hasPermission = hasLocationPermission()
 
@@ -148,7 +147,7 @@ class SensorService(ctx: Context) {
         }
     }
 
-    private fun getGPSAltimeter(gps: IGPS? = null): IAltimeter {
+    private fun getGPSAltimeter(gps: IGPS? = null, frequency: Duration): IAltimeter {
         val mode = userPrefs.altimeterMode
 
         if (mode == UserPreferences.AltimeterMode.Override) {
@@ -158,29 +157,31 @@ class SensorService(ctx: Context) {
                 return CachedAltimeter(context)
             }
 
-            val actualGPS = gps ?: getGPS()
+            val actualGPS = gps ?: getGPS(frequency)
 
             if (mode.usesDem) {
-                return getDigitalElevationModel(gps)
+                return getDigitalElevationModel(gps, frequency)
             }
 
             return actualGPS
         }
     }
 
-    private fun getDigitalElevationModel(gps: IGPS? = null): IGPS {
+    private fun getDigitalElevationModel(gps: IGPS? = null, frequency: Duration): IGPS {
         return DigitalElevationModel(
-            gps ?: getGPS()
+            gps ?: getGPS(frequency)
         )
     }
 
     fun getAltimeter(
-        preferGPS: Boolean = false, gps: IGPS? = null
+        preferGPS: Boolean = false,
+        gps: IGPS? = null,
+        frequency: Duration = DEFAULT_GPS_FREQUENCY
     ): IAltimeter {
         if (preferGPS) {
             return CachingAltimeterWrapper(
                 context, GaussianAltimeterWrapper(
-                    getGPSAltimeter(gps), userPrefs.altimeterSamples
+                    getGPSAltimeter(gps, frequency), userPrefs.altimeterSamples
                 )
             )
         }
@@ -199,7 +200,7 @@ class SensorService(ctx: Context) {
                 )
             )
         } else if (mode == UserPreferences.AltimeterMode.DigitalElevationModel) {
-            return CachingAltimeterWrapper(context, getDigitalElevationModel(gps))
+            return CachingAltimeterWrapper(context, getDigitalElevationModel(gps, frequency))
         } else {
             if (!GPS.isAvailable(context)) {
                 if (mode == UserPreferences.AltimeterMode.GPSBarometer && hasBarometer) {
@@ -214,9 +215,9 @@ class SensorService(ctx: Context) {
                 return CachedAltimeter(context)
             }
 
-            var gps = gps ?: getGPS()
+            var gps = gps ?: getGPS(frequency)
             if (mode == UserPreferences.AltimeterMode.DigitalElevationModelBarometer) {
-                gps = getDigitalElevationModel(gps)
+                gps = getDigitalElevationModel(gps, frequency)
             }
 
             return if ((mode == UserPreferences.AltimeterMode.GPSBarometer || mode == UserPreferences.AltimeterMode.DigitalElevationModelBarometer) && hasBarometer) {
@@ -252,15 +253,18 @@ class SensorService(ctx: Context) {
     }
 
     // TODO: Expose a way to see that a disturbance is present
-    fun getCompass(orientationSensor: IOrientationSensor? = null): ICompass {
+    fun getCompass(
+        orientationSensor: IOrientationSensor? = null,
+        delay: Int = MOTION_SENSOR_DELAY
+    ): ICompass {
         return CompassProvider(context, userPrefs.compass).get(
-            MOTION_SENSOR_DELAY,
+            delay,
             orientationSensor
         )
     }
 
-    fun getOrientation(): IOrientationSensor {
-        return CompassProvider(context, userPrefs.compass).getOrientationSensor(MOTION_SENSOR_DELAY)
+    fun getOrientation(delay: Int = MOTION_SENSOR_DELAY): IOrientationSensor {
+        return CompassProvider(context, userPrefs.compass).getOrientationSensor(delay)
     }
 
     fun getDeviceOrientationSensor(): DeviceOrientation {
@@ -332,34 +336,37 @@ class SensorService(ctx: Context) {
         )
     }
 
-    fun getGravity(): IAccelerometer {
+    fun getGravity(delay: Int = MOTION_SENSOR_DELAY): IAccelerometer {
         return if (Sensors.hasSensor(context, Sensor.TYPE_GRAVITY)) {
-            GravitySensor(context, MOTION_SENSOR_DELAY)
+            GravitySensor(context, delay)
         } else {
-            LowPassAccelerometer(context, MOTION_SENSOR_DELAY)
+            LowPassAccelerometer(context, delay)
         }
     }
 
-    fun getMagnetometer(filtered: Boolean = false): IMagnetometer {
+    fun getMagnetometer(
+        filtered: Boolean = false,
+        delay: Int = MOTION_SENSOR_DELAY
+    ): IMagnetometer {
         return if (filtered) {
-            LowPassMagnetometer(context, MOTION_SENSOR_DELAY)
+            LowPassMagnetometer(context, delay)
         } else {
-            Magnetometer(context, MOTION_SENSOR_DELAY)
+            Magnetometer(context, delay)
         }
     }
 
-    fun getGyroscope(): IOrientationSensor {
+    fun getGyroscope(delay: Int = MOTION_SENSOR_DELAY): IOrientationSensor {
         if (!Sensors.hasGyroscope(context)) {
             return MockGyroscope()
         }
         if (Sensors.hasSensor(context, Sensor.TYPE_GAME_ROTATION_VECTOR)) {
-            return GameRotationSensor(context, MOTION_SENSOR_DELAY)
+            return GameRotationSensor(context, delay)
         }
-        return Gyroscope(context, MOTION_SENSOR_DELAY)
+        return Gyroscope(context, delay)
     }
 
-    fun getAccelerometer(): IAccelerometer {
-        return Accelerometer(context, MOTION_SENSOR_DELAY)
+    fun getAccelerometer(delay: Int = MOTION_SENSOR_DELAY): IAccelerometer {
+        return Accelerometer(context, delay)
     }
 
     fun getLightSensor(): ILightSensor {
@@ -367,8 +374,12 @@ class SensorService(ctx: Context) {
     }
 
     companion object {
-        const val MOTION_SENSOR_DELAY = SensorManager.SENSOR_DELAY_GAME
+        const val MOTION_SENSOR_DELAY = SensorManager.SENSOR_DELAY_UI
+        const val FAST_MOTION_SENSOR_DELAY = SensorManager.SENSOR_DELAY_GAME
         private const val ENVIRONMENT_SENSOR_DELAY = SensorManager.SENSOR_DELAY_NORMAL
+        val DEFAULT_GPS_FREQUENCY: Duration = Duration.ofSeconds(1)
+        val NAVIGATION_GPS_FREQUENCY: Duration = Duration.ofMillis(200)
+        val SINGLE_FIX_GPS_FREQUENCY: Duration = Duration.ofMillis(20)
     }
 
 }
