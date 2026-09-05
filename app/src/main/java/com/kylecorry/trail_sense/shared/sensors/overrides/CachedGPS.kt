@@ -22,9 +22,9 @@ class CachedGPS(context: Context, private val updateFrequency: Long = 1000L) : A
     override val location: Coordinate
         get() {
             val lat =
-                cache.getDouble(CacheGPSModule.LAST_LATITUDE) ?: userPrefs.locationOverride.latitude
+                cache.getDouble(CacheGPSModule.LAST_LATITUDE) ?: userPrefs.gps.locationOverride.latitude
             val lng =
-                cache.getDouble(CacheGPSModule.LAST_LONGITUDE) ?: userPrefs.locationOverride.longitude
+                cache.getDouble(CacheGPSModule.LAST_LONGITUDE) ?: userPrefs.gps.locationOverride.longitude
             return Coordinate(lat, lng)
         }
     override val speed: Speed

@@ -89,7 +89,7 @@ class LocationSubsystem private constructor(private val context: Context) {
     }
 
     private fun isGPSOverridden(): Boolean {
-        return !userPrefs.useAutoLocation || !sensorService.hasLocationPermission()
+        return !userPrefs.gps.useAutoLocation || !sensorService.hasLocationPermission()
     }
 
     companion object {

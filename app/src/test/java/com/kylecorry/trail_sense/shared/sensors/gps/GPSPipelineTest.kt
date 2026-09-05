@@ -4,7 +4,7 @@ import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.sol.units.Speed
 import com.kylecorry.sol.units.DistanceUnits
 import com.kylecorry.sol.units.TimeUnits
-import com.kylecorry.trail_sense.shared.UserPreferences
+import com.kylecorry.trail_sense.settings.infrastructure.IGPSPreferences
 import com.kylecorry.trail_sense.settings.migrations.InMemoryPreferences
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -13,6 +13,10 @@ import java.time.Instant
 
 class GPSPipelineTest {
     private val preferences = InMemoryPreferences()
+    private val prefs = mock<IGPSPreferences> {
+        on { useFilteredGPS }.thenReturn(true)
+        on { filterLocationReadings }.thenReturn(true)
+    }
 
     private fun pipeline(vararg modules: GPSModule) =
         GPSPipeline(modules.toList() + CacheGPSModule(preferences))
@@ -81,12 +85,12 @@ class GPSPipelineTest {
 
     @Test
     fun restoresNewerCacheAndResynchronizesKalmanAcrossRestarts() {
-        val first = pipeline(KalmanGPSModule(mock()))
+        val first = pipeline(KalmanGPSModule(prefs, mock()))
         first.start()
         first.update(reading(1))
         first.stop()
 
-        val second = pipeline(KalmanGPSModule(mock()))
+        val second = pipeline(KalmanGPSModule(prefs, mock()))
         second.update(reading(2, 1.001))
         second.update(reading(3, 1.002))
         assertTrue(first.reinitialize())
@@ -98,7 +102,7 @@ class GPSPipelineTest {
         assertEquals(second.reading.location, first.reading.location)
         // Restoring includes the internal covariance, so both filters continue identically.
         val expected = reading(4, 1.003)
-        KalmanGPSModule(mock()).update(first.reading, expected)
+        KalmanGPSModule(prefs, mock()).update(first.reading, expected)
         first.update(reading(4, 1.003))
         second.update(reading(4, 1.003))
         assertEquals(expected.location, first.reading.location)
@@ -109,7 +113,7 @@ class GPSPipelineTest {
 
     @Test
     fun recreatingPipelineForEveryFixMatchesContinuousFiltering() {
-        val continuous = GPSPipeline(listOf(KalmanGPSModule(mock())))
+        val continuous = GPSPipeline(listOf(KalmanGPSModule(prefs, mock())))
         var seconds = 1L
         for ((index, interval) in listOf(1L, 1L, 1L, 15L, 1L, 900L, 1800L, 1L).withIndex()) {
             seconds += interval
@@ -119,7 +123,7 @@ class GPSPipelineTest {
                 speedAccuracy = 0.3f
                 bearingAccuracy = 2f
             }
-            val recreated = pipeline(KalmanGPSModule(mock()))
+            val recreated = pipeline(KalmanGPSModule(prefs, mock()))
             continuous.update(source())
             recreated.update(source())
             assertEquals(continuous.reading.location, recreated.reading.location)
@@ -163,10 +167,7 @@ class GPSPipelineTest {
 
     @Test
     fun grossJumpDoesNotChangeSmoothingOrCache() {
-        val prefs = mock<UserPreferences> {
-            on { filterLocationReadings }.thenReturn(true)
-        }
-        val pipeline = pipeline(BadReadingRejectionGPSModule(prefs, mock()), KalmanGPSModule(mock()))
+        val pipeline = pipeline(BadReadingRejectionGPSModule(prefs, mock()), KalmanGPSModule(prefs, mock()))
         pipeline.update(reading(1))
         assertEquals(GPSUpdateResult.Rejected, pipeline.update(reading(2, 2.0)))
         assertEquals(reading(1).location, pipeline.reading.location)

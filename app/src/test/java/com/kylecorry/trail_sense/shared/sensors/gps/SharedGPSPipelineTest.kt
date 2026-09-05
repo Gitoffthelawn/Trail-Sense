@@ -2,12 +2,14 @@ package com.kylecorry.trail_sense.shared.sensors.gps
 
 import com.kylecorry.luna.time.ITimer
 import com.kylecorry.sol.units.Coordinate
+import com.kylecorry.trail_sense.settings.infrastructure.IGPSPreferences
 import com.kylecorry.trail_sense.settings.migrations.InMemoryPreferences
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.CountDownLatch
@@ -16,8 +18,11 @@ import java.util.concurrent.TimeUnit
 
 class SharedGPSPipelineTest {
     private val cache = InMemoryPreferences()
+    private val prefs = mock<IGPSPreferences> {
+        on { useFilteredGPS }.thenReturn(true)
+    }
     private val shared = SharedGPSPipeline {
-        GPSPipeline(listOf(KalmanGPSModule(mock()), CacheGPSModule(cache)))
+        GPSPipeline(listOf(KalmanGPSModule(prefs, mock()), CacheGPSModule(cache)))
     }
 
     private fun reading(seconds: Long, longitude: Double = 1.0) = ModularGPSData(
@@ -51,7 +56,7 @@ class SharedGPSPipelineTest {
 
     @Test
     fun duplicateCallbacksDoNotApplyKalmanCorrectionTwice() {
-        val continuous = GPSPipeline(listOf(KalmanGPSModule(mock())))
+        val continuous = GPSPipeline(listOf(KalmanGPSModule(prefs, mock())))
         for (second in 1L..10L) {
             val source = reading(second, 1.0 + second * 0.0001)
             continuous.update(source)
@@ -161,20 +166,19 @@ class SharedGPSPipelineTest {
 
     @Test
     fun smoothingPreferenceChangesApplyToExistingPipeline() {
-        var enabled = true
         val pipeline = SharedGPSPipeline {
-            GPSPipeline(listOf(KalmanGPSModule(mock(), enabled = { enabled }), CacheGPSModule(cache)))
+            GPSPipeline(listOf(KalmanGPSModule(prefs, mock()), CacheGPSModule(cache)))
         }
         pipeline.update(reading(1))
         pipeline.update(reading(2, 1.001))
         assertTrue(pipeline.reading.location.longitude < 1.001)
-        enabled = false
+        whenever(prefs.useFilteredGPS).thenReturn(false)
         pipeline.update(reading(3, 1.002))
         assertEquals(reading(3, 1.002).location, pipeline.reading.location)
         val restored = ModularGPSData()
         CacheGPSModule(cache).restore(restored)
         assertNull(restored.kalmanVariance)
-        enabled = true
+        whenever(prefs.useFilteredGPS).thenReturn(true)
         pipeline.update(reading(4, 1.003))
         assertTrue(pipeline.reading.location.longitude > 1.002)
         assertTrue(pipeline.reading.location.longitude < 1.003)

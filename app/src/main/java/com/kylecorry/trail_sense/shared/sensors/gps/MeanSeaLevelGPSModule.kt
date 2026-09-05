@@ -4,12 +4,13 @@ import com.kylecorry.luna.concurrency.BackgroundTask
 import com.kylecorry.luna.concurrency.CoroutineQueueRunner
 import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.trail_sense.main.getAppService
-import com.kylecorry.trail_sense.shared.GeoidService
 import com.kylecorry.trail_sense.shared.UserPreferences
+import com.kylecorry.trail_sense.settings.infrastructure.IGPSPreferences
+import com.kylecorry.trail_sense.shared.GeoidService
 import kotlinx.coroutines.runBlocking
 
 class MeanSeaLevelGPSModule(
-    private val userPrefs: UserPreferences = getAppService(),
+    private val prefs: IGPSPreferences = getAppService<UserPreferences>().gps,
     private val geoidService: GeoidService = getAppService()
 ) : GPSModule {
     private var mslOffset = 0f
@@ -49,7 +50,7 @@ class MeanSeaLevelGPSModule(
     }
 
     private fun getGeoidOffset(location: Coordinate): Float {
-        if (userPrefs.useNMEA && mslOffset != 0f) {
+        if (prefs.useNMEA && mslOffset != 0f) {
             return mslOffset
         }
 

@@ -4,7 +4,7 @@ import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.sol.units.DistanceUnits
 import com.kylecorry.sol.units.Speed
 import com.kylecorry.sol.units.TimeUnits
-import com.kylecorry.trail_sense.shared.UserPreferences
+import com.kylecorry.trail_sense.settings.infrastructure.IGPSPreferences
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -12,7 +12,7 @@ import org.mockito.kotlin.whenever
 import java.time.Instant
 
 class BadReadingRejectionGPSModuleTest {
-    private val prefs = mock<UserPreferences> {
+    private val prefs = mock<IGPSPreferences> {
         on { filterLocationReadings }.thenReturn(true)
         on { requiresSatellites }.thenReturn(true)
     }

@@ -3,6 +3,7 @@ package com.kylecorry.trail_sense.shared.sensors.gps
 import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.trail_sense.main.getAppService
 import com.kylecorry.trail_sense.shared.UserPreferences
+import com.kylecorry.trail_sense.settings.infrastructure.IGPSPreferences
 import com.kylecorry.trail_sense.shared.logging.Logger
 import com.kylecorry.trail_sense.shared.safeRoundPlaces
 import java.time.Duration
@@ -14,7 +15,7 @@ import kotlin.math.hypot
  * Rejects readings which are clearly erroneous.
  */
 class BadReadingRejectionGPSModule(
-    private val userPrefs: UserPreferences = getAppService(),
+    private val prefs: IGPSPreferences = getAppService<UserPreferences>().gps,
     private val logger: Logger = getAppService()
 ) : GPSModule {
     private val diagnosticId = nextDiagnosticId.getAndIncrement()
@@ -24,7 +25,7 @@ class BadReadingRejectionGPSModule(
             return false
         }
 
-        if (!userPrefs.filterLocationReadings) {
+        if (!prefs.filterLocationReadings) {
             return true
         }
 
@@ -37,7 +38,7 @@ class BadReadingRejectionGPSModule(
 
         // If satellite count is null, then the phone doesn't support satellite count
         val satelliteCount = newData.satellites
-        val hasFix = satelliteCount == null || !userPrefs.requiresSatellites || satelliteCount >= 4
+        val hasFix = satelliteCount == null || !prefs.requiresSatellites || satelliteCount >= 4
         if (!hasFix) {
             logRejectedReading("not enough satellites ($satelliteCount)", previousData, newData)
             return false

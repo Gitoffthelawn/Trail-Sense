@@ -2,14 +2,14 @@ package com.kylecorry.trail_sense.shared.sensors.gps
 
 import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.trail_sense.shared.GeoidService
-import com.kylecorry.trail_sense.shared.UserPreferences
+import com.kylecorry.trail_sense.settings.infrastructure.IGPSPreferences
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 class MeanSeaLevelGPSModuleTest {
-    private val prefs = mock<UserPreferences>()
+    private val prefs = mock<IGPSPreferences>()
     private val lookups = mutableListOf<Coordinate>()
     private val module = MeanSeaLevelGPSModule(
         prefs,

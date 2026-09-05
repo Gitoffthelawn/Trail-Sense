@@ -1,8 +1,6 @@
 package com.kylecorry.trail_sense.shared.sensors.gps
 
 import com.kylecorry.andromeda.sense.location.ISatelliteGPS
-import com.kylecorry.trail_sense.main.getAppService
-import com.kylecorry.trail_sense.shared.UserPreferences
 import java.time.Instant
 
 internal class SharedGPSPipeline(private val factory: (() -> Unit) -> GPSPipeline) {
@@ -70,14 +68,13 @@ internal class SharedGPSPipeline(private val factory: (() -> Unit) -> GPSPipelin
         @Synchronized
         fun getInstance(): SharedGPSPipeline {
             return instance ?: SharedGPSPipeline { notifyTimeout ->
-                val prefs = getAppService<UserPreferences>()
                 GPSPipeline(
                     listOf(
                         BadReadingRejectionGPSModule(),
                         MeanSeaLevelGPSModule(),
                         SpeedGPSModule(),
                         TimeoutGPSModule(notifyTimeout),
-                        KalmanGPSModule(enabled = { prefs.useFilteredGPS }),
+                        KalmanGPSModule(),
                         CacheGPSModule()
                     )
                 )

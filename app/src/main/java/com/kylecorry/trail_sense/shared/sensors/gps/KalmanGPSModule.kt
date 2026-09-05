@@ -6,6 +6,8 @@ import com.kylecorry.sol.units.Distance
 import com.kylecorry.sol.units.DistanceUnits
 import com.kylecorry.sol.units.TimeUnits
 import com.kylecorry.trail_sense.main.getAppService
+import com.kylecorry.trail_sense.settings.infrastructure.IGPSPreferences
+import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.logging.Logger
 import java.time.Duration
 import java.time.Instant
@@ -13,8 +15,8 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 class KalmanGPSModule(
-    private val logger: Logger = getAppService(),
-    private val enabled: () -> Boolean = { true }
+    private val prefs: IGPSPreferences = getAppService<UserPreferences>().gps,
+    private val logger: Logger = getAppService()
 ) : GPSModule {
     private var location: Coordinate? = null
     private var speed = 0f
@@ -25,7 +27,7 @@ class KalmanGPSModule(
     private var time: Instant? = null
 
     override fun update(previousData: ModularGPSData, newData: ModularGPSData): Boolean {
-        if (!enabled()) {
+        if (!prefs.useFilteredGPS) {
             location = null
             time = null
             return true

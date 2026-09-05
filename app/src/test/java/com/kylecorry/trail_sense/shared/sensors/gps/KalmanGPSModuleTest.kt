@@ -6,13 +6,17 @@ import com.kylecorry.sol.units.Distance
 import com.kylecorry.sol.units.DistanceUnits
 import com.kylecorry.sol.units.Speed
 import com.kylecorry.sol.units.TimeUnits
+import com.kylecorry.trail_sense.settings.infrastructure.IGPSPreferences
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.time.Instant
 
 class KalmanGPSModuleTest {
-    private val module = KalmanGPSModule(mock())
+    private val prefs = mock<IGPSPreferences> {
+        on { useFilteredGPS }.thenReturn(true)
+    }
+    private val module = KalmanGPSModule(prefs, mock())
     private val previous = ModularGPSData(time = Instant.EPOCH)
 
     private fun reading(seconds: Long, longitude: Double = 1.0) = ModularGPSData(
@@ -25,7 +29,7 @@ class KalmanGPSModuleTest {
     @Test
     fun predictsUsingCachedVelocityInEachDirection() {
         for (direction in listOf(0f, 90f, 180f, 270f)) {
-            val filter = KalmanGPSModule(mock())
+            val filter = KalmanGPSModule(prefs, mock())
             val cached = reading(1).apply {
                 rawBearing = direction
                 speed = Speed.from(10f, DistanceUnits.Meters, TimeUnits.Seconds)
@@ -70,7 +74,7 @@ class KalmanGPSModuleTest {
         val next = reading(2, 1.001)
         module.update(cached, next)
 
-        val continuous = KalmanGPSModule(mock())
+        val continuous = KalmanGPSModule(prefs, mock())
         continuous.update(previous, reading(1))
         val expected = reading(2, 1.001)
         continuous.update(previous, expected)
@@ -92,7 +96,7 @@ class KalmanGPSModuleTest {
     @Test
     fun resynchronizesWithNewerReadingFromAnotherInstance() {
         module.update(previous, reading(1))
-        val other = KalmanGPSModule(mock())
+        val other = KalmanGPSModule(prefs, mock())
         val cached = reading(2, 1.001)
         other.update(previous, cached)
         val newerCached = reading(3, 1.002)
@@ -100,7 +104,7 @@ class KalmanGPSModuleTest {
 
         val next = reading(4, 1.003)
         val expected = reading(4, 1.003)
-        KalmanGPSModule(mock()).update(newerCached, expected)
+        KalmanGPSModule(prefs, mock()).update(newerCached, expected)
         module.update(newerCached, next)
 
         // Restore the internal covariance independently of the reported accuracy.
@@ -260,7 +264,7 @@ class KalmanGPSModuleTest {
         val next = reading(sparse.time.epochSecond + 1, 1.002)
         module.update(sparse, next)
 
-        val fresh = KalmanGPSModule(mock())
+        val fresh = KalmanGPSModule(prefs, mock())
         val expected = reading(next.time.epochSecond, 1.002)
         fresh.update(sparse, expected)
         assertTrue(expected.location.distanceTo(next.location) < 0.01f)
@@ -314,7 +318,7 @@ class KalmanGPSModuleTest {
     @Test
     fun uncertainVelocityTrustsPositionMoreThanPreciseVelocity() {
         fun filtered(error: Float): ModularGPSData {
-            val filter = KalmanGPSModule(mock())
+            val filter = KalmanGPSModule(prefs, mock())
             val first = reading(1).apply {
                 speed = Speed.from(20f, DistanceUnits.Meters, TimeUnits.Seconds)
                 rawBearing = 90f

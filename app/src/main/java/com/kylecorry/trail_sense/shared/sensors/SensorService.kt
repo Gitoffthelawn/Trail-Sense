@@ -84,7 +84,7 @@ class SensorService(ctx: Context) {
 
         val hasPermission = hasLocationPermission()
 
-        if (!userPrefs.useAutoLocation || (!hasPermission && userPrefs.hasLocationOverride)) {
+        if (!userPrefs.gps.useAutoLocation || (!hasPermission && userPrefs.gps.hasLocationOverride)) {
             return OverrideGPS(context, frequency.toMillis())
         }
 

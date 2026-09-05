@@ -57,11 +57,11 @@ class CalibrateGPSFragment : AndromedaPreferenceFragment() {
         locationOverridePref = findPreference(getString(R.string.pref_gps_override))!!
         clearCacheBtn = preference(R.string.pref_gps_clear_cache)
         locationOverridePref.setGPS(realGps)
-        locationOverridePref.setLocation(prefs.locationOverride)
+        locationOverridePref.setLocation(prefs.gps.locationOverride)
         locationOverridePref.setTitle(getString(R.string.pref_gps_override_title))
 
         locationOverridePref.setOnLocationChangeListener {
-            prefs.locationOverride = it ?: Coordinate.zero
+            prefs.gps.locationOverride = it ?: Coordinate.zero
             resetGPS()
             update()
         }
@@ -146,7 +146,7 @@ class CalibrateGPSFragment : AndromedaPreferenceFragment() {
 
     private fun isLocationOverrideEnabled(): Boolean {
         // Either there are no other options for GPS or auto location is off
-        return !isAutoGPSPreferenceEnabled() || !prefs.useAutoLocation
+        return !isAutoGPSPreferenceEnabled() || !prefs.gps.useAutoLocation
     }
 
     private fun isAutoGPSPreferenceEnabled(): Boolean {

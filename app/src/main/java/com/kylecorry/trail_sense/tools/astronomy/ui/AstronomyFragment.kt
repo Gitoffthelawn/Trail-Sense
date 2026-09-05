@@ -481,7 +481,7 @@ class AstronomyFragment : BoundFragment<ActivityAstronomyBinding>() {
             return
         }
 
-        if (gps is MockedGPS && prefs.locationOverride == Coordinate.zero) {
+        if (gps is MockedGPS && prefs.gps.locationOverride == Coordinate.zero) {
             val activity = requireActivity() as MainActivity
             val navController = findNavController()
             val error = UserError(
