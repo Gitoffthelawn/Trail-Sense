@@ -397,7 +397,6 @@
     <string name="precipitation_snow">Snø</string>
     <string name="precipitation_hail">Hagl</string>
     <string name="precipitation_small_hail">Småhagl</string>
-    <string name="precipitation_chance">Nedbørsbrigde: %s</string>
     <string name="take_photo">Tak bilete</string>
     <string name="no_camera_access">Fær ikkje brukt kameraet</string>
     <string name="hide">Gøym</string>
