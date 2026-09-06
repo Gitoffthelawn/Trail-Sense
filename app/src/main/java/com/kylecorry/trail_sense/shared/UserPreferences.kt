@@ -13,7 +13,6 @@ import com.kylecorry.andromeda.preferences.getIntArray
 import com.kylecorry.andromeda.preferences.getLongArray
 import com.kylecorry.andromeda.preferences.putIntArray
 import com.kylecorry.andromeda.preferences.putLongArray
-import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.sol.units.Distance
 import com.kylecorry.sol.units.PressureUnits
 import com.kylecorry.sol.units.TemperatureUnits
@@ -30,6 +29,7 @@ import com.kylecorry.trail_sense.tools.clinometer.infrastructure.ClinometerPrefe
 import com.kylecorry.trail_sense.tools.clock.infrastructure.ClockPreferences
 import com.kylecorry.trail_sense.settings.infrastructure.CompassPreferences
 import com.kylecorry.trail_sense.settings.infrastructure.ErrorPreferences
+import com.kylecorry.trail_sense.settings.infrastructure.GPSPreferences
 import com.kylecorry.trail_sense.tools.flashlight.infrastructure.FlashlightPreferenceRepo
 import com.kylecorry.trail_sense.settings.infrastructure.IDeclinationPreferences
 import com.kylecorry.trail_sense.tools.metaldetector.infrastructure.MetalDetectorPreferences
@@ -93,14 +93,9 @@ class UserPreferences(ctx: Context) : IDeclinationPreferences {
     val turnBack by lazy { TurnBackPreferences(context) }
     val bubbleLevel by lazy { BubbleLevelPreferences(context) }
     val fieldGuide by lazy { FieldGuidePreferences(context) }
+    val gps by lazy { GPSPreferences(context) }
 
     private val isMetricPreferred = Resources.isMetricPreferred(context)
-
-    val useFilteredGPS by BooleanPreference(
-        cache,
-        context.getString(R.string.pref_use_filtered_gps),
-        false
-    )
 
     val useWidgetIconCompatibilityMode by BooleanPreference(
         cache,
@@ -292,38 +287,6 @@ class UserPreferences(ctx: Context) : IDeclinationPreferences {
             value.toString()
         )
 
-    var useAutoLocation: Boolean
-        get() = cache.getBoolean(getString(R.string.pref_auto_location)) ?: true
-        set(value) = cache.putBoolean(getString(R.string.pref_auto_location), value)
-
-    val requiresSatellites: Boolean
-        get() = cache.getBoolean(context.getString(R.string.pref_require_satellites)) ?: true
-
-    val filterLocationReadings by BooleanPreference(
-        cache,
-        context.getString(R.string.pref_filter_location_readings),
-        true
-    )
-
-    var locationOverride: Coordinate
-        get() {
-            val latStr = cache.getString(getString(R.string.pref_latitude_override)) ?: "0.0"
-            val lngStr = cache.getString(getString(R.string.pref_longitude_override)) ?: "0.0"
-
-            val lat = latStr.toDoubleOrNull() ?: 0.0
-            val lng = lngStr.toDoubleOrNull() ?: 0.0
-
-            return Coordinate(lat, lng)
-        }
-        set(value) {
-            cache.putString(getString(R.string.pref_latitude_override), value.latitude.toString())
-            cache.putString(getString(R.string.pref_longitude_override), value.longitude.toString())
-        }
-
-    val hasLocationOverride: Boolean
-        get() = cache.contains(getString(R.string.pref_latitude_override)) &&
-                cache.contains(getString(R.string.pref_longitude_override))
-
     var altitudeOverride: Float
         get() {
             val raw = cache.getString(getString(R.string.pref_altitude_override)) ?: "0.0"
@@ -372,9 +335,6 @@ class UserPreferences(ctx: Context) : IDeclinationPreferences {
     private var useAutoAltitude: Boolean
         get() = cache.getBoolean(getString(R.string.pref_auto_altitude)) ?: true
         set(value) = cache.putBoolean(getString(R.string.pref_auto_altitude), value)
-
-    val useNMEA: Boolean
-        get() = cache.getBoolean(context.getString(R.string.pref_nmea_altitude)) ?: false
 
     val odometerDistanceThreshold: Distance
         get() = Distance.meters(15f)

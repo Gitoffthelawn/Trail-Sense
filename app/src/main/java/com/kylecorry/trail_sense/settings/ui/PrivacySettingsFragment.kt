@@ -36,7 +36,7 @@ class PrivacySettingsFragment : AndromedaPreferenceFragment() {
     }
 
     private fun isLocationMocked(): Boolean {
-        return !prefs.useAutoLocation || !SensorService(requireContext()).hasLocationPermission()
+        return !prefs.gps.useAutoLocation || !SensorService(requireContext()).hasLocationPermission()
     }
 
 }

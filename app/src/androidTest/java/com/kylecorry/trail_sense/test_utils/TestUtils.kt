@@ -150,8 +150,8 @@ object TestUtils {
 
     fun setLocationOverride(coordinate: Coordinate) {
         val prefs = UserPreferences(context)
-        prefs.useAutoLocation = false
-        prefs.locationOverride = coordinate
+        prefs.gps.useAutoLocation = false
+        prefs.gps.locationOverride = coordinate
     }
 
     fun runShellCommand(command: String) {

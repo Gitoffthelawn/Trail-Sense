@@ -22,7 +22,7 @@ class OverrideGPS(context: Context, updateFrequency: Long = 1000L) :
     private val userPrefs by lazy { UserPreferences(context) }
 
     override val location: Coordinate
-        get() = userPrefs.locationOverride
+        get() = userPrefs.gps.locationOverride
     override val speed: Speed
         get() = Speed.from(0f, DistanceUnits.Meters, TimeUnits.Seconds)
     override val speedAccuracy: Float?

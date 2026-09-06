@@ -38,7 +38,7 @@ class GPSDiagnosticScanner(private val gps: IGPS? = null) : ToolDiagnosticScanne
         }
 
         // The location is overridden
-        if (!prefs.useAutoLocation || !sensorService.hasLocationPermission()) {
+        if (!prefs.gps.useAutoLocation || !sensorService.hasLocationPermission()) {
             issues.add(
                 ToolDiagnosticResult(
                     LOCATION_OVERRIDDEN,
@@ -52,7 +52,7 @@ class GPSDiagnosticScanner(private val gps: IGPS? = null) : ToolDiagnosticScanne
                     )
                 )
             )
-            if (prefs.locationOverride == Coordinate.zero) {
+            if (prefs.gps.locationOverride == Coordinate.zero) {
                 issues.add(
                     ToolDiagnosticResult(
                         LOCATION_UNSET,
@@ -70,7 +70,7 @@ class GPSDiagnosticScanner(private val gps: IGPS? = null) : ToolDiagnosticScanne
         }
 
         // Location is disabled
-        if (prefs.useAutoLocation &&
+        if (prefs.gps.useAutoLocation &&
             sensorService.hasLocationPermission() &&
             !GPS.isAvailable(context)
         ) {
