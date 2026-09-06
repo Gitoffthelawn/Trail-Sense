@@ -15,6 +15,7 @@ import com.kylecorry.trail_sense.shared.FormatService
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.sensors.CustomGPS
 import com.kylecorry.trail_sense.shared.sensors.SensorService
+import com.kylecorry.trail_sense.shared.sensors.gps.CacheGPSModule
 import com.kylecorry.trail_sense.shared.sensors.overrides.CachedGPS
 import com.kylecorry.trail_sense.shared.sensors.overrides.OverrideGPS
 import com.kylecorry.trail_sense.shared.views.CoordinatePreference
@@ -56,11 +57,11 @@ class CalibrateGPSFragment : AndromedaPreferenceFragment() {
         locationOverridePref = findPreference(getString(R.string.pref_gps_override))!!
         clearCacheBtn = preference(R.string.pref_gps_clear_cache)
         locationOverridePref.setGPS(realGps)
-        locationOverridePref.setLocation(prefs.locationOverride)
+        locationOverridePref.setLocation(prefs.gps.locationOverride)
         locationOverridePref.setTitle(getString(R.string.pref_gps_override_title))
 
         locationOverridePref.setOnLocationChangeListener {
-            prefs.locationOverride = it ?: Coordinate.zero
+            prefs.gps.locationOverride = it ?: Coordinate.zero
             resetGPS()
             update()
         }
@@ -145,7 +146,7 @@ class CalibrateGPSFragment : AndromedaPreferenceFragment() {
 
     private fun isLocationOverrideEnabled(): Boolean {
         // Either there are no other options for GPS or auto location is off
-        return !isAutoGPSPreferenceEnabled() || !prefs.useAutoLocation
+        return !isAutoGPSPreferenceEnabled() || !prefs.gps.useAutoLocation
     }
 
     private fun isAutoGPSPreferenceEnabled(): Boolean {
@@ -164,7 +165,7 @@ class CalibrateGPSFragment : AndromedaPreferenceFragment() {
     }
 
     private fun clearCache() {
-        CustomGPS.clearCache()
+        CacheGPSModule.clearCache()
     }
 
     private fun update() {

@@ -117,7 +117,7 @@ class FragmentToolTriangulate : BoundFragment<FragmentToolTriangulateBinding>() 
 
         binding.updateGpsOverride.setOnClickListener {
             location?.let { coord ->
-                prefs.locationOverride = coord
+                prefs.gps.locationOverride = coord
                 Alerts.toast(requireContext(), getString(R.string.location_override_updated))
             }
         }
@@ -399,7 +399,7 @@ class FragmentToolTriangulate : BoundFragment<FragmentToolTriangulateBinding>() 
 
         // Update action button visibility
         binding.navigate.isVisible = !shouldCalculateMyLocation
-        binding.updateGpsOverride.isVisible = !prefs.useAutoLocation && shouldCalculateMyLocation
+        binding.updateGpsOverride.isVisible = !prefs.gps.useAutoLocation && shouldCalculateMyLocation
 
         updateMap()
         updateDistances()
