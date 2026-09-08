@@ -2,8 +2,10 @@ package com.kylecorry.trail_sense.settings.infrastructure
 
 import android.content.Context
 import com.kylecorry.andromeda.preferences.BooleanPreference
+import com.kylecorry.andromeda.preferences.StringEnumPreference
 import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.trail_sense.R
+import com.kylecorry.trail_sense.shared.sensors.gps.GPSAccuracyFilter
 
 class GPSPreferences(context: Context) : PreferenceRepo(context), IGPSPreferences {
 
@@ -13,23 +15,27 @@ class GPSPreferences(context: Context) : PreferenceRepo(context), IGPSPreference
         true
     )
 
-    override val requiresSatellites by BooleanPreference(
+    override val requiresSatelliteCount by BooleanPreference(
         cache,
         getString(R.string.pref_require_satellites),
         true
     )
 
-    override val filterLocationReadings by BooleanPreference(
+    override val rejectInvalidReadings by BooleanPreference(
         cache,
         getString(R.string.pref_filter_location_readings),
         true
     )
 
-    override val useFilteredGPS by BooleanPreference(
+    override val accuracyFilter by StringEnumPreference(
         cache,
-        getString(R.string.pref_use_filtered_gps),
-        false
+        getString(R.string.pref_gps_accuracy_requirement),
+        GPSAccuracyFilter.entries.associateBy { it.id.toString() },
+        GPSAccuracyFilter.Low
     )
+
+    override val smoothing: Int
+        get() = (cache.getInt(getString(R.string.pref_gps_smoothing)) ?: 50).coerceIn(0, 100)
 
     override val useNMEA by BooleanPreference(
         cache,
