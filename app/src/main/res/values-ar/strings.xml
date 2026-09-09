@@ -163,7 +163,6 @@
     <string name="gps_searching">يبحث</string>
     <string name="pedometer">عداد الخطوات</string>
     <string name="pref_step_length_title">طول الخطوة</string>
-    <string name="pref_require_satellites_title">طلب تثبيت الأقمار</string>
     <string name="network_5g">5G</string>
     <string name="network_4g">4G</string>
     <string name="network_3g">3G</string>
@@ -483,26 +482,26 @@
     <plurals name="page_group_summary">
         <item quantity="zero">صفحة واحدة</item>
         <item quantity="one">%d صفحات</item>
-        <item quantity="two" />
-        <item quantity="few" />
-        <item quantity="many" />
-        <item quantity="other" />
+        <item quantity="two"/>
+        <item quantity="few"/>
+        <item quantity="many"/>
+        <item quantity="other"/>
     </plurals>
     <plurals name="beacon_group_summary">
         <item quantity="zero">منارة واحدة</item>
         <item quantity="one">%d منارات</item>
-        <item quantity="two" />
-        <item quantity="few" />
-        <item quantity="many" />
-        <item quantity="other" />
+        <item quantity="two"/>
+        <item quantity="few"/>
+        <item quantity="many"/>
+        <item quantity="other"/>
     </plurals>
     <plurals name="path_group_summary">
         <item quantity="zero">مسار واحد</item>
         <item quantity="one">%d مسارات</item>
-        <item quantity="two" />
-        <item quantity="few" />
-        <item quantity="many" />
-        <item quantity="other" />
+        <item quantity="two"/>
+        <item quantity="few"/>
+        <item quantity="many"/>
+        <item quantity="other"/>
     </plurals>
     <string name="one">1</string>
     <string name="could_not_triangulate">تعذر تحديد الموقع بالتثليث</string>
@@ -532,10 +531,10 @@
     <plurals name="beacons_exported">
         <item quantity="zero">تم تصدير منارة واحدة</item>
         <item quantity="one">تم تصدير %d منارات</item>
-        <item quantity="two" />
-        <item quantity="few" />
-        <item quantity="many" />
-        <item quantity="other" />
+        <item quantity="two"/>
+        <item quantity="few"/>
+        <item quantity="many"/>
+        <item quantity="other"/>
     </plurals>
     <string name="tool_bubble_level_title">ميزان الفقاعة</string>
     <string name="tool_bubble_level_summary">تحديد ما إذا كانت الأسطح مستوية</string>
@@ -551,10 +550,10 @@
     <plurals name="beacons_imported">
         <item quantity="zero">تم استيراد منارة واحدة</item>
         <item quantity="one">تم استيراد %d منارات</item>
-        <item quantity="two" />
-        <item quantity="few" />
-        <item quantity="many" />
-        <item quantity="other" />
+        <item quantity="two"/>
+        <item quantity="few"/>
+        <item quantity="many"/>
+        <item quantity="other"/>
     </plurals>
     <string name="gps_location_accuracy">دقة موقع GPS</string>
     <string name="charging_slow">الشحن البطيء (%s)</string>
@@ -578,7 +577,6 @@
     <string name="backtrack_disabled_low_power_toast">التتبع العكسي معطل في وضع توفير الطاقة</string>
     <string name="pref_low_power_mode_summary">تعطيل بعض الميزات لتوفير الطاقة</string>
     <string name="compass_calibrate_toast">دقة البوصلة %s، يُنصح بالمعايرة</string>
-    <string name="pref_require_satellites_description">يتطلب 4 أقمار على الأقل، يحسن الدقة</string>
     <string name="nimbostratus">سحب مطرية طبقية</string>
     <string name="unavailable">غير متوفر</string>
     <string name="quality_good">جيد</string>
@@ -604,10 +602,10 @@
     <plurals name="water_boil_timer_content">
         <item quantity="zero">ثانية واحدة حتى تصبح صالحة للشرب</item>
         <item quantity="one">%d ثوانٍ حتى تصبح صالحة للشرب</item>
-        <item quantity="two" />
-        <item quantity="few" />
-        <item quantity="many" />
-        <item quantity="other" />
+        <item quantity="two"/>
+        <item quantity="few"/>
+        <item quantity="many"/>
+        <item quantity="other"/>
     </plurals>
     <string name="speed">السرعة</string>
     <string name="clear_cache">مسح ذاكرة التخزين المؤقت</string>
