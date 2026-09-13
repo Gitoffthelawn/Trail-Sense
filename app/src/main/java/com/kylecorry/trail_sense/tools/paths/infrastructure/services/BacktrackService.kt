@@ -7,12 +7,11 @@ import com.kylecorry.andromeda.background.TaskSchedulerFactory
 import com.kylecorry.andromeda.background.services.ForegroundInfo
 import com.kylecorry.andromeda.background.services.IntervalService
 import com.kylecorry.andromeda.sense.location.GPS
-import com.kylecorry.luna.concurrency.CoroutineQueueRunner
 import com.kylecorry.luna.time.CoroutineTimer
+import com.kylecorry.luna.time.FlowableTimer
 import com.kylecorry.luna.time.ITimer
 import com.kylecorry.sol.units.Distance
 import com.kylecorry.trail_sense.shared.UserPreferences
-import com.kylecorry.trail_sense.shared.andromeda_temp.FlowableTimer
 import com.kylecorry.trail_sense.shared.extensions.tryStartForegroundOrNotify
 import com.kylecorry.trail_sense.shared.sensors.gps.GPSSource
 import com.kylecorry.trail_sense.shared.sensors.gps.GPSSourceSelector
@@ -20,6 +19,7 @@ import com.kylecorry.trail_sense.tools.paths.PathsToolRegistration
 import com.kylecorry.trail_sense.tools.paths.infrastructure.alerts.BacktrackAlerter
 import com.kylecorry.trail_sense.tools.paths.infrastructure.commands.BacktrackCommand
 import com.kylecorry.trail_sense.tools.tools.infrastructure.Tools
+import kotlinx.coroutines.sync.Mutex
 import java.time.Duration
 
 class BacktrackService :
@@ -53,7 +53,7 @@ class BacktrackService :
                 listenToNmea = false,
                 listenToGnssStatusChanges = false
             )
-        }, action = action)
+        }, unregisterWhileRunning = true, action = action)
     }
 
     override fun getForegroundInfo(): ForegroundInfo {
@@ -68,11 +68,17 @@ class BacktrackService :
     override val period: Duration
         get() = prefs.backtrackRecordFrequency
 
-    private val runner = CoroutineQueueRunner()
+    private val recordLock = Mutex()
 
     override suspend fun doWork() {
-        runner.skipIfRunning {
+        if (!recordLock.tryLock()) {
+            return
+        }
+
+        try {
             backtrackCommand.execute()
+        } finally {
+            recordLock.unlock()
         }
     }
 
@@ -85,7 +91,6 @@ class BacktrackService :
 
     override fun onDestroy() {
         isRunning = false
-        runner.cancel()
         stopService(true)
         super.onDestroy()
     }
