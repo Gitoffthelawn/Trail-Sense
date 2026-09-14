@@ -1,8 +1,9 @@
 package com.kylecorry.trail_sense.main.errors
 
 import android.content.Context
-import android.util.Log
+import com.kylecorry.trail_sense.main.getAppService
 import com.kylecorry.trail_sense.shared.debugging.isDebug
+import com.kylecorry.trail_sense.shared.logging.Logger
 import com.kylecorry.trail_sense.shared.preferences.PreferencesSubsystem
 
 object SafeMode {
@@ -24,13 +25,14 @@ object SafeMode {
 
         if ((System.currentTimeMillis() - lastStartTime) <= RESTART_CRASH_THRESHOLD_MILLIS && (lastStartTime - lastMinus1StartTime) <= RESTART_CRASH_THRESHOLD_MILLIS) {
             // If the app was restarted within the threshold, we are in safe mode
-            Log.w("TrailSenseApplication", "App restarted within threshold, entering safe mode")
+            getAppService<Logger>().warn(TAG, "App restarted twice within ${RESTART_CRASH_THRESHOLD_MILLIS / 1000}s, entering safe mode")
             safeModeEndTime = System.currentTimeMillis() + SAFE_MODE_DURATION_MILLIS
         } else {
             safeModeEndTime = 0L
         }
     }
 
+    private const val TAG = "SafeMode"
     private const val RESTART_CRASH_THRESHOLD_MILLIS = 30 * 1000 // 30 seconds
     private const val SAFE_MODE_DURATION_MILLIS = 20 * 1000 // 20 seconds
     private var safeModeEndTime: Long = 0L

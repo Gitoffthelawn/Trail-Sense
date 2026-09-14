@@ -1,12 +1,13 @@
 package com.kylecorry.trail_sense.shared.dem
 
-import android.util.Log
 import com.kylecorry.andromeda.core.cache.DependencyRegistry
 import com.kylecorry.luna.concurrency.onDefault
+import com.kylecorry.trail_sense.main.getAppService
 import com.kylecorry.trail_sense.main.persistence.AppDatabase
 import com.kylecorry.trail_sense.main.persistence.ICleanable
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.io.FileSubsystem
+import com.kylecorry.trail_sense.shared.logging.Logger
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -21,11 +22,14 @@ class DEMRepo private constructor() : ICleanable {
         lock.withLock {
             val expectedVersion = database.digitalElevationModelDao().getVersion()
             val versionFile = files.get("dem/version.txt")
-            if (!versionFile.exists() || versionFile.readText().trim() != expectedVersion
-            ) {
+            val actualVersion = if (versionFile.exists()) versionFile.readText().trim() else null
+            if (actualVersion == null || actualVersion != expectedVersion) {
                 database.digitalElevationModelDao().deleteAll()
                 if (files.getDirectory("dem").exists()) {
-                    Log.d("DEMRepo", "DEM version mismatch")
+                    getAppService<Logger>().info(
+                        TAG,
+                        "DEM version mismatch (expected: $expectedVersion, found: $actualVersion), removing DEM files"
+                    )
                     files.getDirectory("dem").deleteRecursively()
                 }
                 prefs.altimeter.isDigitalElevationModelLoaded = false
@@ -45,6 +49,7 @@ class DEMRepo private constructor() : ICleanable {
     }
 
     companion object {
+        private const val TAG = "DEMRepo"
         private var instance: DEMRepo? = null
         val lock = Mutex()
 

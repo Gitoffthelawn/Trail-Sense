@@ -2,7 +2,6 @@ package com.kylecorry.trail_sense.tools.offline_maps.infrastructure
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.exifinterface.media.ExifInterface
 import com.kylecorry.andromeda.core.tryOrDefault
 import com.kylecorry.andromeda.core.tryOrLog
@@ -14,9 +13,11 @@ import com.kylecorry.andromeda.pdf.PDFRenderer2
 import com.kylecorry.luna.concurrency.onIO
 import com.kylecorry.sol.math.geometry.Size
 import com.kylecorry.sol.units.Coordinate
+import com.kylecorry.trail_sense.main.getAppService
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.luna.result.Result
 import com.kylecorry.trail_sense.shared.io.FileSubsystem
+import com.kylecorry.trail_sense.shared.logging.Logger
 import com.kylecorry.trail_sense.tools.offline_maps.domain.CreateOfflineMapError
 import com.kylecorry.trail_sense.tools.offline_maps.domain.CreateOfflineMapRequest
 import com.kylecorry.trail_sense.tools.offline_maps.domain.OfflineMap
@@ -115,7 +116,11 @@ internal class OfflineMapImporter(
         try {
             files.save(filename, bp, recycleOnSave = true)
         } catch (e: IOException) {
-            Log.e(TAG, "Failed to save image", e)
+            getAppService<Logger>().error(
+                TAG,
+                "Failed to save rendered PDF image (${bp.width}x${bp.height}, ${describeSource(request.uri)})",
+                e
+            )
             return Result.Err(CreateOfflineMapError.UnableToCopy)
         }
 
@@ -157,7 +162,7 @@ internal class OfflineMapImporter(
 
     private suspend fun importTrailMap(request: CreateOfflineMapRequest): Result<TrailMap, CreateOfflineMapError> {
         if (!MapsforgeAdapter.isMapsforgeMap(request.uri)) {
-            Log.e(TAG, "Invalid extension")
+            getAppService<Logger>().warn(TAG, "Not a Mapsforge map (${describeSource(request.uri)})")
             return Result.Err(CreateOfflineMapError.InvalidMapFile)
         }
         var hasPersistentAccess = false
@@ -173,14 +178,21 @@ internal class OfflineMapImporter(
             if (hasPersistentAccess) {
                 request.uri.toString()
             } else {
-                Log.e(TAG, "Unable to obtain persistent access")
+                getAppService<Logger>().warn(
+                    TAG,
+                    "Unable to obtain persistent access to trail map (${describeSource(request.uri)})"
+                )
                 return Result.Err(CreateOfflineMapError.AccessDenied)
             }
         }
 
         val info = MapsforgeAdapter.getMapInfo(path)
         if (info == null) {
-            Log.e(TAG, "Map file is invalid")
+            getAppService<Logger>().warn(
+                TAG,
+                "Unable to read Mapsforge map info (${describeSource(request.uri)}, " +
+                    "size: ${files.size(path)} bytes, copied: ${prefs.photoMaps.copyTrailMapsToAppStorage})"
+            )
             if (hasPersistentAccess) {
                 files.releasePersistentAccess(request.uri)
             }
@@ -208,6 +220,13 @@ internal class OfflineMapImporter(
             files.copyToLocal(uri, OFFLINE_MAPS_DIRECTORY, "${UUID.randomUUID()}.$extension")
                 ?: return null
         return files.getLocalPath(saved)
+    }
+
+    private fun describeSource(uri: Uri): String {
+        val extension = files.getFileName(uri, withExtension = true, fallbackToPathName = true)
+            ?.substringAfterLast('.', "")
+            ?.lowercase()
+        return "MIME type: ${files.getMimeType(uri)}, extension: $extension"
     }
 
     private fun getMimeTypeFromExtension(uri: Uri): String? {

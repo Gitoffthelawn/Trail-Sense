@@ -5,9 +5,11 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import com.kylecorry.andromeda.core.sensors.AbstractSensor
+import com.kylecorry.andromeda.core.time.SystemTimeProvider
 import com.kylecorry.andromeda.core.sensors.Quality
 import com.kylecorry.andromeda.sense.location.GPS
 import com.kylecorry.andromeda.sense.location.ISatelliteGPS
+import com.kylecorry.andromeda.sense.location.LocationRequestConfig
 import com.kylecorry.andromeda.sense.location.Satellite
 import com.kylecorry.luna.subscriptions.generic.Subscription
 import com.kylecorry.sol.units.Bearing
@@ -16,6 +18,7 @@ import com.kylecorry.sol.units.Speed
 import com.kylecorry.trail_sense.shared.sensors.gps.GPSPipelineConsumer
 import com.kylecorry.trail_sense.shared.sensors.gps.ModularGPSData
 import com.kylecorry.trail_sense.shared.sensors.gps.SharedGPSPipeline
+import com.kylecorry.trail_sense.shared.sensors.gps.age
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import java.time.Duration
@@ -62,8 +65,9 @@ class CustomGPS(
     override val speedAccuracy: Float?
         get() = data.speedAccuracy
 
-    override val time: Instant
-        get() = data.time
+    override var eventTime: Instant
+        get() = data.eventTime
+        set(_) {}
 
     override val altitude: Float
         get() = data.altitude
@@ -72,37 +76,31 @@ class CustomGPS(
     override val bearingAccuracy: Float?
         get() = data.bearingAccuracy
 
-    override val fixTimeElapsedNanos: Long?
-        get() = data.fixTimeElapsedNanos
+    override var eventTimeElapsedNanos: Long
+        get() = data.eventTimeElapsedNanos
+        set(_) {}
 
-    override val mslAltitude: Float?
-        get() = data.mslAltitude
+    override val mslAltitude: Float? = null
 
     val isTimedOut: Boolean
         get() = consumer.reading.isTimedOut
 
     private val baseGPS: ISatelliteGPS by lazy {
-        GPS(context.applicationContext, frequency = gpsFrequency)
+        GPS(
+            context.applicationContext,
+            LocationRequestConfig(frequency = gpsFrequency),
+            listenToNmea = false
+        )
     }
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val timeProvider = SystemTimeProvider()
     private val consumer = GPSPipelineConsumer(
         SharedGPSPipeline.getInstance(),
         this::notifyListenersOnMain
     )
 
     private val data: ISatelliteGPS
-        get() {
-            val reading = consumer.reading
-            return if (
-                reading.isTimedOut &&
-                baseGPS.hasValidReading &&
-                !baseGPS.time.isBefore(reading.time)
-            ) {
-                baseGPS
-            } else {
-                reading
-            }
-        }
+        get() = consumer.reading
 
     private val updates = Subscription<ModularGPSData>(
         replay = 1, // Replay is temporary until the luna onSubscription change is in place to avoid missed readings
@@ -145,9 +143,7 @@ class CustomGPS(
     }
 
     private fun hadRecentValidReading(): Boolean {
-        val last = time
-        val now = Instant.now()
-        return Duration.between(last, now) <= RECENT_READING_THRESHOLD &&
+        return age(timeProvider) <= RECENT_READING_THRESHOLD &&
                 location != Coordinate.zero
     }
 

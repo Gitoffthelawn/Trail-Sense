@@ -1,6 +1,5 @@
 package com.kylecorry.trail_sense.shared.sensors.altimeter
 
-import android.util.Log
 import com.kylecorry.andromeda.core.sensors.AbstractSensor
 import com.kylecorry.andromeda.sense.location.IGPS
 import com.kylecorry.luna.concurrency.BackgroundTask
@@ -9,7 +8,9 @@ import com.kylecorry.luna.concurrency.onMain
 import com.kylecorry.sol.units.Bearing
 import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.sol.units.Speed
+import com.kylecorry.trail_sense.main.getAppService
 import com.kylecorry.trail_sense.shared.dem.DEM
+import com.kylecorry.trail_sense.shared.logging.Logger
 import java.time.Instant
 
 class DigitalElevationModel(private val gps: IGPS) : AbstractSensor(),
@@ -20,19 +21,34 @@ class DigitalElevationModel(private val gps: IGPS) : AbstractSensor(),
             try {
                 val location = gps.location
                 val gpsIsValid = gps.hasValidReading
+                val fixTimeElapsedNanos = gps.eventTimeElapsedNanos
+                val fixTime = gps.eventTime
                 demAltitude = DEM.getElevation(location).elevation
+                if (isLookupFailing) {
+                    isLookupFailing = false
+                    getAppService<Logger>().info(TAG, "DEM elevation lookup recovered")
+                }
+                demEventTimeElapsedNanos = fixTimeElapsedNanos
+                demEventTime = fixTime
                 onMain {
                     if (gpsIsValid) {
                         notifyListeners()
                     }
                 }
             } catch (e: Exception) {
-                Log.e("DigitalElevationModel", "Unable to get DEM elevation", e)
+                // Lookups run on every GPS update, so only log the first failure until one succeeds
+                if (!isLookupFailing) {
+                    isLookupFailing = true
+                    getAppService<Logger>().error(TAG, "Unable to get DEM elevation", e)
+                }
             }
         }
     }
     private val queue = CoroutineQueueRunner(2)
     private var demAltitude: Float? = null
+    private var demEventTimeElapsedNanos: Long? = null
+    private var demEventTime: Instant? = null
+    private var isLookupFailing = false
 
     private fun onUpdate(): Boolean {
         updateTask.start()
@@ -72,10 +88,16 @@ class DigitalElevationModel(private val gps: IGPS) : AbstractSensor(),
         get() = gps.bearingAccuracy
     override val speedAccuracy: Float?
         get() = gps.speedAccuracy
-    override val fixTimeElapsedNanos: Long?
-        get() = gps.fixTimeElapsedNanos
-    override val time: Instant
-        get() = gps.time
+    override var eventTimeElapsedNanos: Long
+        get() = demEventTimeElapsedNanos ?: gps.eventTimeElapsedNanos
+        set(_) {}
+    override var eventTime: Instant
+        get() = demEventTime ?: gps.eventTime
+        set(_) {}
     override val speed: Speed
         get() = gps.speed
+
+    companion object {
+        private const val TAG = "DigitalElevationModel"
+    }
 }

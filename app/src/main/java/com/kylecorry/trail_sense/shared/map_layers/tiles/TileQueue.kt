@@ -1,7 +1,9 @@
 package com.kylecorry.trail_sense.shared.map_layers.tiles
 
-import android.util.Log
+import android.os.SystemClock
 import com.kylecorry.luna.concurrency.Parallel
+import com.kylecorry.trail_sense.main.getAppService
+import com.kylecorry.trail_sense.shared.logging.Logger
 import com.kylecorry.trail_sense.shared.map_layers.ui.layers.IMapViewProjection
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -110,11 +112,14 @@ class TileQueue {
         // TODO: Allow cancellation of a job - likely means storing the actual jobs somewhere
         try {
             Parallel.forEach(jobs) {
-                val start = System.currentTimeMillis()
+                val start = if (shouldLog) SystemClock.elapsedRealtime() else 0L
                 it.load()
-                val end = System.currentTimeMillis()
                 if (shouldLog) {
-                    Log.d("TileQueue", "${it.key} (${end - start}ms)")
+                    getAppService<Logger>().debug(
+                        "TileQueue",
+                        "${it.key} (${SystemClock.elapsedRealtime() - start}ms)",
+                        writeToFile = false
+                    )
                 }
                 onStateChange(it)
             }

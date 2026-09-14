@@ -1,5 +1,6 @@
 package com.kylecorry.trail_sense.shared.sensors.gps
 
+import com.kylecorry.andromeda.core.time.TimeProvider
 import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.sol.units.DistanceUnits
 import com.kylecorry.sol.units.Speed
@@ -19,16 +20,22 @@ import org.mockito.kotlin.mock
 
 class GPSPipelineTest {
     private val preferences = InMemoryPreferences()
+    // The device booted at the epoch
+    private val timeProvider = object : TimeProvider {
+        override fun elapsedRealtime() = 1_000_000_000L
+        override fun currentTimeMillis() = 1_000_000_000L
+    }
     private val prefs = mock<IGPSPreferences> {
         on { smoothing }.thenReturn(100)
     }
 
     private suspend fun pipeline(vararg modules: GPSModule) =
-        GPSPipeline(modules.toList() + CacheGPSModule(preferences)).also { it.reinitialize() }
+        GPSPipeline(modules.toList() + CacheGPSModule(preferences, timeProvider) { 1 }).also { it.reinitialize() }
 
     private fun reading(seconds: Long, longitude: Double = 1.0) = ModularGPSData(
         location = Coordinate(1.0, longitude),
-        time = Instant.EPOCH.plusSeconds(seconds),
+        eventTime = Instant.EPOCH.plusSeconds(seconds),
+        eventTimeElapsedNanos = seconds * 1_000_000_000,
         horizontalAccuracy = 10f,
         hasValidReading = true
     )
@@ -77,12 +84,12 @@ class GPSPipelineTest {
 
     @Test
     fun rejectedZeroLocationDoesNotOverwriteTheLastFix() = runBlocking<Unit> {
-        val pipeline = GPSPipeline(listOf(BadReadingFilterGPSModule(mock())))
+        val pipeline = GPSPipeline(listOf(BadReadingFilterGPSModule(mock(), timeProvider)))
         assertEquals(GPSUpdateResult.NewFixAccepted, pipeline.update(reading(1)))
         val zeroed = reading(2).also { it.location = Coordinate.zero }
         assertEquals(GPSUpdateResult.Rejected, pipeline.update(zeroed))
         assertEquals(reading(1).location, pipeline.reading.location)
-        assertEquals(reading(1).time, pipeline.reading.time)
+        assertEquals(reading(1).eventTime, pipeline.reading.eventTime)
         // The filter still has the accepted fix to compare against, so older readings stay rejected
         assertEquals(GPSUpdateResult.Rejected, pipeline.update(reading(0, 2.0)))
     }
@@ -90,7 +97,7 @@ class GPSPipelineTest {
     @Test
     fun rejectedCandidateFieldsDoNotLeakIntoTheNextFix() = runBlocking<Unit> {
         val pipeline = GPSPipeline(listOf(module { _, next ->
-            if (next.time == reading(1).time) {
+            if (next.eventTime == reading(1).eventTime) {
                 next.altitude = 123f
                 next.satellites = 9
                 next.rawBearing = 90f
@@ -101,7 +108,7 @@ class GPSPipelineTest {
             }
         }))
         assertEquals(GPSUpdateResult.Rejected, pipeline.update(reading(1)))
-        assertEquals(Instant.EPOCH, pipeline.reading.time)
+        assertEquals(Instant.EPOCH, pipeline.reading.eventTime)
         assertEquals(GPSUpdateResult.NewFixAccepted, pipeline.update(reading(2)))
         assertEquals(0f, pipeline.reading.altitude)
         assertNull(pipeline.reading.satellites)
@@ -139,8 +146,8 @@ class GPSPipelineTest {
         assertEquals(GPSUpdateResult.Rejected, pipeline.update(reading(2, 2.0)))
         assertEquals(1, laterCalls)
         assertEquals(reading(1).location, pipeline.reading.location)
-        assertEquals(reading(1).time, pipeline.reading.time)
-        assertEquals(reading(1).time, pipeline().reading.time)
+        assertEquals(reading(1).eventTime, pipeline.reading.eventTime)
+        assertEquals(reading(1).eventTime, pipeline().reading.eventTime)
 
         reject = false
         assertEquals(GPSUpdateResult.NewFixAccepted, pipeline.update(reading(3)))
@@ -151,7 +158,7 @@ class GPSPipelineTest {
         val pipeline = pipeline()
         pipeline.update(reading(1))
         val duplicate = reading(1).apply {
-            time = time.plusNanos(123456)
+            eventTime = eventTime.plusNanos(123456)
             satellites = 8
             altitude = 20f
         }
@@ -237,7 +244,8 @@ class GPSPipelineTest {
                 }
             },
             logger = mock(),
-            timerFactory = { fireTimeout = it; mock() }
+            timerFactory = { fireTimeout = it; mock() },
+            timeProvider = timeProvider
         )
         pipeline = pipeline(module { _, next -> next.hasValidReading }, timeout)
         pipeline.start()
@@ -264,7 +272,7 @@ class GPSPipelineTest {
     @Test
     fun rejectedReadingDoesNotChangeSmoothingOrCache() = runBlocking<Unit> {
         val pipeline = pipeline(
-            BadReadingFilterGPSModule(mock()),
+            BadReadingFilterGPSModule(mock(), timeProvider),
             KalmanGPSModule(prefs, mock())
         )
         pipeline.update(reading(1))
@@ -280,7 +288,7 @@ class GPSPipelineTest {
         val writer = pipeline()
         writer.update(reading(1))
         val reader = pipeline()
-        assertEquals(reading(1).time, reader.reading.time)
+        assertEquals(reading(1).eventTime, reader.reading.eventTime)
         assertEquals(reading(1).location, reader.reading.location)
         assertFalse(reader.reinitialize())
 
@@ -293,7 +301,7 @@ class GPSPipelineTest {
     @Test
     fun emptyCacheDoesNotChangeEmptyReading() = runBlocking<Unit> {
         val pipeline = pipeline()
-        assertEquals(Instant.EPOCH, pipeline.reading.time)
+        assertEquals(Instant.EPOCH, pipeline.reading.eventTime)
         assertEquals(Coordinate.zero, pipeline.reading.location)
         assertFalse(pipeline.reinitialize())
     }
@@ -322,11 +330,11 @@ class GPSPipelineTest {
             override suspend fun update(previousData: ModularGPSData, newData: ModularGPSData) = true
 
             override suspend fun start(data: ModularGPSData) {
-                events.add("start:${data.time.epochSecond}")
+                events.add("start:${data.eventTime.epochSecond}")
             }
 
             override suspend fun stop(data: ModularGPSData) {
-                events.add("stop:${data.time.epochSecond}")
+                events.add("stop:${data.eventTime.epochSecond}")
             }
         })
         pipeline.start()
