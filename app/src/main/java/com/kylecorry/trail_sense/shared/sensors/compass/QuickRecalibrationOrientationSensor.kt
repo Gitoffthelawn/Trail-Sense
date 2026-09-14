@@ -1,11 +1,12 @@
 package com.kylecorry.trail_sense.shared.sensors.compass
 
-import android.util.Log
 import com.kylecorry.andromeda.core.math.DecimalFormatter
 import com.kylecorry.andromeda.core.sensors.AbstractSensor
 import com.kylecorry.andromeda.sense.orientation.IOrientationSensor
 import com.kylecorry.sol.math.MathExtensions.real
 import com.kylecorry.sol.math.Quaternion
+import com.kylecorry.trail_sense.main.getAppService
+import com.kylecorry.trail_sense.shared.logging.Logger
 import com.kylecorry.trail_sense.tools.metaldetector.ui.Debouncer
 import java.time.Duration
 import kotlin.math.sqrt
@@ -97,7 +98,7 @@ class QuickRecalibrationOrientationSensor(
             } else {
                 if (System.currentTimeMillis() - lastThresholdTime > resetTimeMillis) {
                     if (verbose) {
-                        Log.d(javaClass.simpleName, "Recalibrating")
+                        getAppService<Logger>().debug(TAG, "Recalibrating", writeToFile = false)
                     }
                     recalibrate()
                     lastThresholdTime = 0L
@@ -108,15 +109,16 @@ class QuickRecalibrationOrientationSensor(
         }
 
         if (verbose && System.currentTimeMillis() - lastLogTime > 500) {
-            Log.d(
-                javaClass.simpleName,
+            getAppService<Logger>().debug(
+                TAG,
                 "Diff: ${
                     DecimalFormatter.format(
                         angularMagnitude,
                         2,
                         true
                     ).padStart(6, ' ')
-                }, Motion: $moving, Resetting: ${lastThresholdTime != 0L}"
+                }, Motion: $moving, Resetting: ${lastThresholdTime != 0L}",
+                writeToFile = false
             )
             lastLogTime = System.currentTimeMillis()
         }
@@ -138,5 +140,7 @@ class QuickRecalibrationOrientationSensor(
         }
     }
 
-
+    companion object {
+        private const val TAG = "QuickRecalibrationOrientationSensor"
+    }
 }

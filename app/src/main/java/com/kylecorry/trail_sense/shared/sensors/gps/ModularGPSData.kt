@@ -19,16 +19,15 @@ class ModularGPSData(
     override var location: Coordinate = Coordinate.zero,
     override var verticalAccuracy: Float? = null,
     override var horizontalAccuracy: Float? = null,
-    override var mslAltitude: Float? = null,
     override var bearing: Bearing? = null,
     override var rawBearing: Float? = null,
     override var bearingAccuracy: Float? = null,
     override var speedAccuracy: Float? = null,
-    override var fixTimeElapsedNanos: Long? = null,
+    override var eventTimeElapsedNanos: Long = 0L,
     override var quality: Quality = Quality.Unknown,
     override var hasValidReading: Boolean = false,
     override var altitude: Float = 0f,
-    override var time: Instant = Instant.now(),
+    override var eventTime: Instant = Instant.now(),
     override var speed: Speed = Speed.from(0f, DistanceUnits.Meters, TimeUnits.Seconds),
     @Volatile var isTimedOut: Boolean = false
 ) : ISatelliteGPS {
@@ -37,8 +36,10 @@ class ModularGPSData(
     var kalmanState: GPSKalmanState? = null
     var speedSource: SpeedSource = SpeedSource.Unknown
 
+    override val mslAltitude: Float? = null
+
     val id: Long
-        get() = time.toEpochMilli()
+        get() = eventTimeElapsedNanos
 
     // This is a data holder, so it never emits
     override val flow: Flow<Unit> = emptyFlow()
@@ -74,16 +75,15 @@ class ModularGPSData(
         other.location = location
         other.verticalAccuracy = verticalAccuracy
         other.horizontalAccuracy = horizontalAccuracy
-        other.mslAltitude = mslAltitude
         other.bearing = bearing
         other.rawBearing = rawBearing
         other.bearingAccuracy = bearingAccuracy
         other.speedAccuracy = speedAccuracy
-        other.fixTimeElapsedNanos = fixTimeElapsedNanos
+        other.eventTimeElapsedNanos = eventTimeElapsedNanos
         other.quality = quality
         other.hasValidReading = hasValidReading
         other.altitude = altitude
-        other.time = time
+        other.eventTime = eventTime
         other.speed = speed
         other.speedSource = speedSource
         other.isTimedOut = isTimedOut
@@ -96,16 +96,15 @@ class ModularGPSData(
         location = gps.location
         verticalAccuracy = gps.verticalAccuracy
         horizontalAccuracy = gps.horizontalAccuracy
-        mslAltitude = gps.mslAltitude
         bearing = gps.bearing
         rawBearing = gps.rawBearing
         bearingAccuracy = gps.bearingAccuracy
         speedAccuracy = gps.speedAccuracy
-        fixTimeElapsedNanos = gps.fixTimeElapsedNanos
+        eventTimeElapsedNanos = gps.eventTimeElapsedNanos
         quality = gps.quality
         hasValidReading = gps.hasValidReading
         altitude = gps.altitude
-        time = gps.time
+        eventTime = gps.eventTime
         speed = gps.speed
         speedSource = (gps as? ModularGPSData)?.speedSource ?: SpeedSource.Provider
     }

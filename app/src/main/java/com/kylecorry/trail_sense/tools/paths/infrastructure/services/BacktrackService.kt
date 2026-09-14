@@ -7,12 +7,15 @@ import com.kylecorry.andromeda.background.TaskSchedulerFactory
 import com.kylecorry.andromeda.background.services.ForegroundInfo
 import com.kylecorry.andromeda.background.services.IntervalService
 import com.kylecorry.andromeda.sense.location.GPS
+import com.kylecorry.andromeda.sense.location.LocationRequestConfig
 import com.kylecorry.luna.time.CoroutineTimer
 import com.kylecorry.luna.time.FlowableTimer
 import com.kylecorry.luna.time.ITimer
 import com.kylecorry.sol.units.Distance
+import com.kylecorry.trail_sense.main.getAppService
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.extensions.tryStartForegroundOrNotify
+import com.kylecorry.trail_sense.shared.logging.Logger
 import com.kylecorry.trail_sense.shared.sensors.gps.GPSSource
 import com.kylecorry.trail_sense.shared.sensors.gps.GPSSourceSelector
 import com.kylecorry.trail_sense.tools.paths.PathsToolRegistration
@@ -26,10 +29,6 @@ class BacktrackService :
     IntervalService(wakelockDuration = Duration.ofSeconds(60), useOneTimeWorkers = true) {
     private val prefs by lazy { UserPreferences(applicationContext) }
 
-    private val backtrackCommand by lazy {
-        BacktrackCommand(this)
-    }
-
     override val uniqueId: Int
         get() = 7238542
 
@@ -41,19 +40,22 @@ class BacktrackService :
                 GPSSourceSelector(this).getSource(useCache = false) == GPSSource.Device
 
         if (!canWakeWithLocationUpdates) {
+            getAppService<Logger>().info(TAG, "Using a coroutine timer (keep awake: ${prefs.backtrackKeepDeviceAwake})")
             return CoroutineTimer { action() }
         }
+
+        getAppService<Logger>().info(TAG, "Using location updates as the timer")
 
         return FlowableTimer({ periodMillis ->
             // This intentionally does not use the CustomGPS because it only needs to use the GPS as a wakeup source
             // This has the side effect of warming up the GPS for backtrack
             GPS(
                 this,
-                frequency = Duration.ofMillis(periodMillis),
+                LocationRequestConfig(frequency = Duration.ofMillis(periodMillis)),
                 listenToNmea = false,
                 listenToGnssStatusChanges = false
             )
-        }, unregisterWhileRunning = true, action = action)
+        }, action = action)
     }
 
     override fun getForegroundInfo(): ForegroundInfo {
@@ -76,13 +78,17 @@ class BacktrackService :
         }
 
         try {
-            backtrackCommand.execute()
+            BacktrackCommand(this).execute()
         } finally {
             recordLock.unlock()
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        getAppService<Logger>().info(
+            TAG,
+            "Started (period: $period, keep awake: ${prefs.backtrackKeepDeviceAwake}, restarted by system: ${intent == null})"
+        )
         isRunning = true
         return tryStartForegroundOrNotify {
             super.onStartCommand(intent, flags, startId)
@@ -90,6 +96,7 @@ class BacktrackService :
     }
 
     override fun onDestroy() {
+        getAppService<Logger>().info(TAG, "Stopped")
         isRunning = false
         stopService(true)
         super.onDestroy()
@@ -97,6 +104,7 @@ class BacktrackService :
 
     companion object {
         const val FOREGROUND_CHANNEL_ID = "Backtrack"
+        private const val TAG = "BacktrackService"
 
         var isRunning = false
             private set(value) {

@@ -2,13 +2,15 @@ package com.kylecorry.trail_sense.tools.paths.services
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import com.kylecorry.andromeda.permissions.Permissions
 import com.kylecorry.trail_sense.R
+import com.kylecorry.trail_sense.main.getAppService
 import com.kylecorry.trail_sense.receivers.ServiceRestartAlerter
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.extensions.tryStartForegroundOrNotify
+import com.kylecorry.trail_sense.shared.logging.Logger
 import com.kylecorry.trail_sense.shared.permissions.canStartLocationForegroundService
+import com.kylecorry.trail_sense.shared.permissions.isAppForeground
 import com.kylecorry.trail_sense.shared.preferences.PreferencesSubsystem
 import com.kylecorry.trail_sense.tools.paths.PathsToolRegistration
 import com.kylecorry.trail_sense.tools.paths.infrastructure.BacktrackScheduler
@@ -58,7 +60,11 @@ class BacktrackToolService(private val context: Context) : ToolService {
     override suspend fun enable() {
         if (!Permissions.canStartLocationForegroundService(context)) {
             ServiceRestartAlerter(context).alert()
-            Log.d("BacktrackSubsystem", "Cannot start backtrack")
+            getAppService<Logger>().warn(
+                TAG,
+                "Cannot start backtrack: missing location permission for foreground service " +
+                    "(app in foreground: ${isAppForeground()}, background location: ${Permissions.isBackgroundLocationEnabled(context)})"
+            )
             return
         }
 
@@ -122,5 +128,9 @@ class BacktrackToolService(private val context: Context) : ToolService {
 
     protected fun finalize() {
         sharedPreferences.onChange.unsubscribe(this::onPreferencesChanged)
+    }
+
+    companion object {
+        private const val TAG = "BacktrackToolService"
     }
 }
