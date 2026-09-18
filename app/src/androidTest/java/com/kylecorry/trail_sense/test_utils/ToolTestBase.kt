@@ -119,7 +119,7 @@ open class ToolTestBase(
         val tool = Tools.getTool(context, id) ?: return
         input("Search", tool.name)
         scrollUntil { click(tool.name, index = 1) }
-        delay(200)
+        delay(1000)
     }
 
     @After
