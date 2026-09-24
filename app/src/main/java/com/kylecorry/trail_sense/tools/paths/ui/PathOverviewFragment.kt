@@ -11,12 +11,7 @@ import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import com.kylecorry.andromeda.alerts.Alerts
 import com.kylecorry.andromeda.alerts.toast
-import com.kylecorry.luna.concurrency.onDefault
-import com.kylecorry.luna.concurrency.onIO
-import com.kylecorry.luna.concurrency.onMain
 import com.kylecorry.andromeda.core.system.Resources
-import com.kylecorry.luna.time.CoroutineTimer
-import com.kylecorry.luna.time.Throttle
 import com.kylecorry.andromeda.core.tryOrNothing
 import com.kylecorry.andromeda.core.ui.Colors
 import com.kylecorry.andromeda.fragments.BoundFragment
@@ -26,6 +21,11 @@ import com.kylecorry.andromeda.fragments.show
 import com.kylecorry.andromeda.geojson.GeoJsonFeature
 import com.kylecorry.andromeda.geojson.GeoJsonFeatureCollection
 import com.kylecorry.andromeda.pickers.Pickers
+import com.kylecorry.luna.concurrency.onDefault
+import com.kylecorry.luna.concurrency.onIO
+import com.kylecorry.luna.concurrency.onMain
+import com.kylecorry.luna.time.CoroutineTimer
+import com.kylecorry.luna.time.Throttle
 import com.kylecorry.sol.math.Range
 import com.kylecorry.sol.math.MathExtensions.roundPlaces
 import com.kylecorry.sol.math.statistics.Statistics
@@ -34,7 +34,6 @@ import com.kylecorry.sol.science.geology.CoordinateBounds
 import com.kylecorry.sol.science.geology.Geology
 import com.kylecorry.sol.units.Distance
 import com.kylecorry.trail_sense.R
-import com.kylecorry.trail_sense.shared.extensions.observeTopicWhileResumed
 import com.kylecorry.trail_sense.tools.navigation.domain.PathNavigationMode
 import com.kylecorry.trail_sense.tools.navigation.infrastructure.Navigator
 import com.kylecorry.trail_sense.databinding.FragmentPathOverviewBinding
@@ -61,6 +60,7 @@ import com.kylecorry.trail_sense.shared.toRelativeDistance
 import com.kylecorry.trail_sense.tools.beacons.infrastructure.BeaconNavigator
 import com.kylecorry.trail_sense.tools.beacons.infrastructure.IBeaconNavigator
 import com.kylecorry.trail_sense.tools.beacons.infrastructure.persistence.BeaconService
+import com.kylecorry.trail_sense.tools.beacons.domain.BeaconIcon
 import com.kylecorry.trail_sense.tools.map.map_layers.MyLocationGeoJsonSource
 import com.kylecorry.trail_sense.tools.map.map_layers.ScaleBarLayer
 import com.kylecorry.trail_sense.tools.paths.domain.Path
@@ -285,7 +285,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
             onWaypointsChanged(it)
         }
 
-        observeTopicWhileResumed(gps) {
+        observe(gps) {
             updateDeclination()
             binding.pathImage.userLocation = gps.location
             binding.pathImage.userLocationAccuracy =
@@ -293,7 +293,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
             onPathChanged()
         }
 
-        observeTopicWhileResumed(compass) {
+        observe(compass) {
             binding.pathImage.userAzimuth = compass.bearing
         }
 
@@ -594,6 +594,31 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
                 strokeColor = Color.TRANSPARENT
             )
         }
+        val endpointFeatures = listOfNotNull(
+            waypoints.minByOrNull { it.id }?.let {
+                GeoJsonFeature.point(
+                    it.coordinate,
+                    id = "path-start-${path.id}",
+                    color = path.style.color,
+                    strokeColor = Color.WHITE,
+                    strokeWeight = 1f,
+                    size = 8f
+                )
+            },
+            waypoints.maxByOrNull { it.id }?.let {
+                GeoJsonFeature.point(
+                    it.coordinate,
+                    id = "path-end-${path.id}",
+                    color = Color.WHITE,
+                    icon = BeaconIcon.Flag.id,
+                    iconColor = path.style.color,
+                    strokeColor = path.style.color,
+                    strokeWeight = 1f,
+                    size = 12f,
+                    iconSize = 8f
+                )
+            }
+        )
 
         val pathFeature = GeoJsonFeature.lineString(
             waypoints.map { it.coordinate },
@@ -603,7 +628,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
             color = path.style.color
         )
 
-        layer.setData(GeoJsonFeatureCollection(waypointFeatures + pathFeature))
+        layer.setData(GeoJsonFeatureCollection(waypointFeatures + endpointFeatures + pathFeature))
     }
 
     private fun updateDeclination() {
