@@ -1673,4 +1673,27 @@
     <string name="pref_backtrack_keep_awake_summary">Lorsque la fréquence est inférieure à 15 minutes</string>
     <string name="pref_backtrack_keep_awake_title">Maintenir l\'appareil actif</string>
     <string name="battery_deep_sleep">Veille profonde : %1$s (last %2$s)</string>
+    <string name="replace_elevations">Remplacer les élévations</string>
+    <string name="replace_elevations_confirmation">Faut-il remplacer toutes les altitudes des chemins par celles du modèle numérique d\'altitude ?</string>
+    <string name="pref_gps_power_usage_title">Consommation d\'énergie du GPS</string>
+    <string name="pref_backtrack_gps_power_usage_title">Consommation électrique du GPS Backtrack</string>
+    <string name="gps_power_usage_low">Économie de batterie</string>
+    <string name="gps_power_usage_balanced">Équilibré</string>
+    <string name="gps_power_usage_high">Haute précision</string>
+    <string name="gps_power_usage_inherit">Hériter des paramètres GPS</string>
+    <string name="path_navigation_follow">Suivre jusqu\'à la fin</string>
+    <string name="path_navigation_loop">Suivre le circuit complet</string>
+    <string name="path_navigation_reverse_loop">Suivre le circuit complet dans le sens inverse</string>
+    <string name="path_navigation_to_point">Suivre le chemin jusqu\'à ce point</string>
+    <string name="path_navigation_direct">Accéder directement</string>
+    <string name="pref_backtrack_min_distance_title">Distance minimale entre deux points</string>
+    <string name="pref_backtrack_min_distance_summary">Les points situés à une distance inférieure à celle-ci par rapport au point précédent ne sont pas enregistrés. Définissez cette valeur sur 0 pour enregistrer tous les points.</string>
+    <string name="gps_accuracy_filter_summary">Précision de %1$s, délai maximal de %2$s</string>
+    <string name="gps_accuracy_target">Précision : %1$s</string>
+    <string name="gps_accuracy_wait">Durée d\'attente maximale : %1$s</string>
+    <string name="delete_packing_list_item">Supprimer cet élément ?</string>
+    <string name="map_layer_navigation_show_endpoints">Afficher les points de début et de fin</string>
+    <string name="compass_update_frequency">Fréquence de mise à jour de la boussole</string>
+    <string name="compass_update_frequency_normal">Normal</string>
+    <string name="compass_update_frequency_fast">Rapide</string>
 </resources>

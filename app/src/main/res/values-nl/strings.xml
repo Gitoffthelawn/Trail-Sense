@@ -650,7 +650,7 @@
     <string name="saved_to_note">Opgeslagen als aantekening</string>
     <string name="open">Openen</string>
     <string name="note">Aantekening</string>
-    <string name="qr_text_too_long">Tekst is te lang, QR code is afgekort</string>
+    <string name="qr_text_too_long">Tekst is te lang, QR-code is afgekort</string>
     <string name="view">Bekijken</string>
     <string name="estimated">Geschat</string>
     <string name="tide_table">Getijdetabel</string>
@@ -688,8 +688,8 @@
     <string name="compass_unavailable">Kompas niet beschikbaar</string>
     <string name="gps_unavailable">GPS niet beschikbaar</string>
     <string name="gps_timeouts">GPS-onderbrekingen</string>
-    <string name="qr_code_scanner">QR code lezer</string>
-    <string name="no_qr_code_found">Geen QR code herkend</string>
+    <string name="qr_code_scanner">QR-codelezer</string>
+    <string name="no_qr_code_found">Geen QR-code herkend</string>
     <string name="share_ellipsis">Delen…</string>
     <string name="undo">Ongedaan maken</string>
     <string name="tool_temperature_estimation_description">Voorspel de temperatuur bij een andere hoogte, windsnelheid en luchtvochtigheid</string>
@@ -1472,7 +1472,7 @@
     <string name="draw_accurate_shadows">Nauwkeurige schaduwen weergeven</string>
     <string name="attribution">Dank aan</string>
     <string name="map_attribution_format">Kaartdata © %s</string>
-    <string name="show_modeled_tides">Gemodelleerde getijden aan de kustlijn tonen</string>
+    <string name="show_modeled_tides">Gemodelleerde getijden aan kustlijn weergeven</string>
     <string name="map_layer_base_map_description">Gekleurde wereldkaart in lage resolutie</string>
     <string name="map_layer_elevation_description">Kleurgecodeerde hoogtes uit het digitale hoogtemodel</string>
     <string name="map_layer_hillshade_description">Gekleurd terrein om hoogteverschillen te visualiseren</string>
@@ -1505,7 +1505,7 @@
     <string name="map_layer_field_guide_sightings_description">Je veldgidswaarnemingen</string>
     <string name="sighting_label">Waarneming %s</string>
     <string name="show_on_map">Bekijk op kaart</string>
-    <string name="show_images">Afbeeldingen tonen</string>
+    <string name="show_images">Afbeeldingen weergeven</string>
     <string name="pref_high_detail_mode_title">Hoge detailmodus</string>
     <string name="pref_high_detail_mode_summary">Laadt meer tegels voor een hogere kwaliteit. Gebruikt meer geheugen.</string>
     <string name="multi_direction_shading">Multidirectionele schaduw</string>
@@ -1660,4 +1660,28 @@
     <string name="pref_backtrack_keep_awake_title">Apparaat wakker houden</string>
     <string name="pref_backtrack_keep_awake_summary">Bij een frequentie van minder dan 15 minuten</string>
     <string name="battery_deep_sleep">Diepe slaap: %1$s (duur: %2$s)</string>
+    <string name="gps_power_usage_low">Batterijbesparend</string>
+    <string name="gps_power_usage_balanced">Gebalanceerd</string>
+    <string name="gps_power_usage_high">Hoge nauwkeurigheid</string>
+    <string name="pref_backtrack_gps_power_usage_title">GPS-batterijverbruik voor Terugweg</string>
+    <string name="gps_power_usage_inherit">Hetzelfde als GPS-instellingen</string>
+    <string name="pref_gps_power_usage_title">GPS-batterijverbruik</string>
+    <string name="replace_elevations_confirmation">Alle padhoogtes vervangen met behulp van het digitale hoogtemodel?</string>
+    <string name="replace_elevations">Hoogtes vervangen</string>
+    <string name="path_navigation_follow">Volg naar einde</string>
+    <string name="path_navigation_reverse">Volg naar begin</string>
+    <string name="path_navigation_loop">Volg hele route</string>
+    <string name="path_navigation_reverse_loop">Volg hele route in omgekeerde richting</string>
+    <string name="path_navigation_to_point">Volg pad tot dit punt</string>
+    <string name="path_navigation_direct">Direct navigeren</string>
+    <string name="gps_accuracy_filter_summary">%1$s nauwkeurigheid, wacht %2$s</string>
+    <string name="gps_accuracy_target">Nauwkeurigheid: %1$s</string>
+    <string name="gps_accuracy_wait">Maximale wachttijd: %1$s</string>
+    <string name="pref_backtrack_min_distance_title">Minimumafstand tussen punten</string>
+    <string name="pref_backtrack_min_distance_summary">Punten die zich dichterbij het vorige punt bevinden worden niet opgenomen. Stel in op 0 om alle punten op te nemen.</string>
+    <string name="delete_packing_list_item">Voorwerp verwijderen?</string>
+    <string name="map_layer_navigation_show_endpoints">Begin- en eindpunten weergeven</string>
+    <string name="compass_update_frequency_normal">Normaal</string>
+    <string name="compass_update_frequency_fast">Snel</string>
+    <string name="compass_update_frequency">Bijwerkfrequentie kompas</string>
 </resources>
