@@ -12,27 +12,29 @@ Terms:
 ## Path shape
 
 - Function: `isLoop`
-- Inputs: list of path points
-- Output: boolean, from the coordinates only
+- Inputs: list of coordinates (the path points' coordinates)
+- Output: boolean
 
 ```
 pathLength = sum of distances between consecutive points
-endGap = distance(first point, last point)
+seam = distance(first point, last point)
 
-return points.size >= 3 and pathLength > 30 m and endGap <= min(100 m, 10% of pathLength)
+return points.size >= 3 and pathLength > 30 m and seam <= min(100 m, 10% of pathLength)
 ```
 
 ## Routing
 
+- Object: `PathRouteBuilder`. `buildRoute` and `isLoop` are public, `findCandidateSnaps` and `findShortestRoute` are private.
+- Enum: `PathNavigationMode` (`TO_END`, `REVERSED_TO_END`, `FULL_LOOP`, `REVERSED_FULL_LOOP`)
+
 - Function: `buildRoute`
-- Inputs: `points` (not empty), `location`, `mode` (`TO_END`, `REVERSED_TO_END`, `FULL_LOOP`, `REVERSED_FULL_LOOP`), optional `destinationPointId` (must be one of the points)
+- Inputs: `points` (not empty), `location`, `mode: PathNavigationMode`, optional `destinationPointId` (must be one of the points)
 - Output: list of path points
 
 ```
-points = points sorted by id ascending
-points = HikingService.correctElevations(points)
+points = HikingService.correctElevations(points sorted by id ascending)
 
-if points.size = 1 or every segment has zero length
+if points.size is 1 or every segment has zero length
     return [first point]
 
 loop = isLoop(points)
@@ -40,15 +42,14 @@ loop = isLoop(points)
 if destinationPointId is present
     return findShortestRoute(points, location, index of destination in points, loop)
 
-if mode = TO_END
+if mode is TO_END
     return findShortestRoute(points, location, last index, loop)
 
-if mode = REVERSED_TO_END
+if mode is REVERSED_TO_END
     return findShortestRoute(points, location, 0, loop)
 
-path = points, or points reversed if mode = REVERSED_FULL_LOOP
-snaps = findCandidateSnaps(path, location)
-snap = snaps[0]
+path = points, or points reversed if mode is REVERSED_FULL_LOOP
+snap = findCandidateSnaps(path, location).first
 return [snap] + path points after snap's segment
 ```
 
@@ -84,20 +85,30 @@ for snap in findCandidateSnaps(points, location)
     else
         itineraries = [direct]
 
-    for itinerary in itineraries
-        itineraryLength = sum of distances between consecutive points of itinerary
-        if bestItinerary is none or itineraryLength < length of bestItinerary
-            bestItinerary = itinerary
+    update bestItinerary if any itinerary in itineraries has length shorter than bestItinerary or it is not set
 
 return bestItinerary
 ```
 
 ## Progress tracking
 
-- Class: `PathRoute`
+- Class: `PathRoute(pathPoints: List<PathPoint>)` (not empty). `routeLength` is its public `length`, and the path's id is the first point's path id.
+- Property: `onProgressChanged: ((progress: Float, location: Coordinate) -> Unit)?`, null by default
 - Method: `navigate(location)`
-- Output: guidance
+- Output: `PathRoute.Guidance`
 - Calls are serialized
+
+```
+Guidance
+    target: coordinate
+    remainingDistance: Distance
+    offRoute: Distance
+    arrived: boolean
+    remainingRoute: list of path points
+    remainingElevationGain: Distance
+    remainingElevationLoss: Distance, zero or negative
+    progress: Float (0 to 1)
+```
 
 State:
 
@@ -110,22 +121,16 @@ reachedCorner = -infinity
 ```
 
 ```
-if previousGuidance exists and location = previousLocation
+if previousGuidance exists and location is previousLocation
     return previousGuidance
 
 match = matchLocation(location)
 guidance = getGuidance(location, match)
 
-if guidance.arrived
-    previousProgress = 1
-else if routeLength = 0
-    previousProgress = 0
-else
-    previousProgress = clamp(match.distanceAlong / routeLength, 0, 1)
-
 previousLocation = location
 previousGuidance = guidance
-notifyProgressListener(previousProgress, location)
+previousProgress = guidance.progress
+call onProgressChanged(previousProgress, location) if it is set
 
 return guidance
 ```
@@ -147,8 +152,7 @@ if nearby.offset <= 15 m
     pendingRejoin = none
     return nearby
 
-closestOffset = smallest offset of any projection onto the whole route
-anywhere = of the projections within 1 m of closestOffset, the earliest along the route
+anywhere = findClosestInRange(location, [0, routeLength], preferLater = false)
 
 if anywhere.offset >= nearby.offset - 15 m
     pendingRejoin = none
@@ -163,7 +167,7 @@ return nearby
 ```
 
 - Function: `findClosestInRange`
-- Inputs: `location`, `range` (distances along the route)
+- Inputs: `location`, `range` (distances along the route), `preferLater` (default true)
 - Output: match
 
 ```
@@ -174,7 +178,7 @@ if projections is empty
     return position with offset = distance(location, point at position)
 
 closestOffset = smallest offset of projections
-return, of the projections within 1 m of closestOffset, the furthest along the route
+return, of the projections within 1 m of closestOffset, the furthest along the route if preferLater, otherwise the earliest (projections are ordered by segment index, so further along means later in the route)
 ```
 
 A route with zero length (a single point, or points at the same position) is one zero length segment: it always matches position 0 with the offset measured to the first point, and the remaining route includes the points after the first (the point itself if there is only one).
@@ -211,9 +215,16 @@ projectionPoint = match projection with positionElevation, id -2, the path's id
 remainingRoute = [locationPoint]
 if match.offset > 1 m
     remainingRoute += projectionPoint
-remainingRoute += route points after the matched segment
+remainingRoute += route points from the end of the matched segment onward
 
-return guidance(arrived, remainingDistance, offRoute, remainingGain, remainingLoss, remainingRoute, getTarget(location, match))
+if guidance.arrived
+    progress = 1
+else if routeLength is 0
+    progress = 0
+else
+    progress = clamp(match.distanceAlong / routeLength, 0, 1)
+
+return Guidance(target = getTarget(location, match), remainingDistance, offRoute, arrived, remainingRoute, remainingElevationGain = remainingGain, remainingElevationLoss = remainingLoss, progress = progress)
 ```
 
 Elevation gain and loss are summed between consecutive route points (increases are gain, decreases are loss, which is negative), and interpolated within the matched segment. For this sum only, a point without an elevation takes the previous point's elevation, and leading points without one take the first known elevation (all 0 if none are known), as in `HikingService.getElevations`. The elevation at the matched position is the endpoint's if exactly at a segment endpoint, otherwise interpolated between the segment's endpoints (absent if either is absent).

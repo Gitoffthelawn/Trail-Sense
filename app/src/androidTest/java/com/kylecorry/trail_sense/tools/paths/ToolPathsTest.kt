@@ -559,6 +559,7 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
 
         isVisible(R.id.navigation_title)
         hasText(R.id.navigation_sheet_title, "Durfee Short")
+        isVisible(R.id.navigation_progress)
         // The path is 12.99 miles from the current location
         hasText(R.id.navigation_distance, "13 mi")
         hasText(R.id.navigation_eta, Regex("(\\d+h)?\\s?(\\d+m)?\\s?(\\d+s)?"))
@@ -704,7 +705,7 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         assertNotNull(destination)
         assertEquals("Durfee Out", destination!!.path.name)
         // Without the saved progress the route would start over and need to find the shortcut again
-        assertEquals(663.6f, destination.route.navigate(location).remainingDistance, 3f)
+        assertEquals(663.6f, destination.route.navigate(location).remainingDistance.meters().value, 3f)
     }
 
     @Test
