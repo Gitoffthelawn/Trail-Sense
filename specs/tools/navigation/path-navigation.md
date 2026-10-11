@@ -94,7 +94,7 @@ return bestItinerary
 
 - Class: `PathRoute(pathPoints: List<PathPoint>)` (not empty). `routeLength` is its public `length`, and the path's id is the first point's path id.
 - Property: `onProgressChanged: ((progress: Float, location: Coordinate) -> Unit)?`, null by default
-- Method: `navigate(location)`
+- Method: `navigate(location, accuracy: Distance?)`: `accuracy` is the horizontal accuracy of the location, null if unknown
 - Output: `PathRoute.Guidance`
 - Calls are serialized
 
@@ -108,6 +108,7 @@ Guidance
     remainingElevationGain: Distance
     remainingElevationLoss: Distance, zero or negative
     progress: Float (0 to 1)
+    effortProgress: Float (0 to 1)
 ```
 
 State:
@@ -124,8 +125,9 @@ reachedCorner = -infinity
 if previousGuidance exists and location is previousLocation
     return previousGuidance
 
-match = matchLocation(location)
-guidance = getGuidance(location, match)
+tolerance = clamp(accuracy if not null, otherwise 0 m, 15 m, 75 m)
+match = matchLocation(location, tolerance)
+guidance = getGuidance(location, match, tolerance)
 
 previousLocation = location
 previousGuidance = guidance
@@ -138,27 +140,30 @@ return guidance
 ### Location matching
 
 - Function: `matchLocation`
-- Inputs: `location`
+- Inputs: `location`, `tolerance: Distance`
 - Output: match (the projection onto the route, with its `distanceAlong` and `offset`)
 
 ```
 movement = distance(previousLocation, location), or 0 if there is no previousLocation
 center = previousProgress * routeLength
-range = [center - (movement + 15 m), center + (movement + 15 m)]
+range = [center - (movement + tolerance), center + (movement + tolerance)]
 
 nearby = findClosestInRange(location, range)
 
-if nearby.offset <= 15 m
+rejoinMargin = min(tolerance, 30 m)
+
+if nearby.offset <= rejoinMargin
     pendingRejoin = none
     return nearby
 
-anywhere = findClosestInRange(location, [0, routeLength], preferLater = false)
+anywhere = findClosestInRange(location, [0, routeLength], preferNear = center)
+progressLost = max(center - anywhere.distanceAlong, 0)
 
-if anywhere.offset >= nearby.offset - 15 m
+if anywhere.offset + progressLost >= nearby.offset - rejoinMargin
     pendingRejoin = none
     return nearby
 
-if pendingRejoin exists and |pendingRejoin - anywhere.distanceAlong| <= 15 m + 2 * movement
+if pendingRejoin exists and |pendingRejoin - anywhere.distanceAlong| <= tolerance + 2 * movement
     pendingRejoin = none
     return anywhere
 
@@ -167,7 +172,7 @@ return nearby
 ```
 
 - Function: `findClosestInRange`
-- Inputs: `location`, `range` (distances along the route), `preferLater` (default true)
+- Inputs: `location`, `range` (distances along the route), `preferNear` (a distance along the route, optional)
 - Output: match
 
 ```
@@ -178,7 +183,12 @@ if projections is empty
     return position with offset = distance(location, point at position)
 
 closestOffset = smallest offset of projections
-return, of the projections within 1 m of closestOffset, the furthest along the route if preferLater, otherwise the earliest (projections are ordered by segment index, so further along means later in the route)
+closest = projections within 1 m of closestOffset
+
+if preferNear is set
+    return the projection of closest whose distanceAlong is nearest to preferNear (the earliest if tied)
+
+return the furthest along the route of closest (projections are ordered by segment index, so further along means later in the route)
 ```
 
 A route with zero length (a single point, or points at the same position) is one zero length segment: it always matches position 0 with the offset measured to the first point, and the remaining route includes the points after the first (the point itself if there is only one).
@@ -186,12 +196,13 @@ A route with zero length (a single point, or points at the same position) is one
 ### Guidance
 
 - Function: `getGuidance`
-- Inputs: `location`, `match`
+- Inputs: `location`, `match`, `tolerance: Distance`
 - Output: guidance
 
 ```
 remainingLength = routeLength - match.distanceAlong
-arrived = remainingLength <= 15 m and distance(location, last route point) <= 15 m
+arrivalRadius = 2 * tolerance if previousGuidance exists and previousGuidance.arrived, otherwise tolerance
+arrived = remainingLength <= arrivalRadius and distance(location, last route point) <= arrivalRadius
 
 if arrived
     remainingDistance = 0
@@ -217,14 +228,22 @@ if match.offset > 1 m
     remainingRoute += projectionPoint
 remainingRoute += route points from the end of the matched segment onward
 
-if guidance.arrived
+if arrived
     progress = 1
 else if routeLength is 0
     progress = 0
 else
     progress = clamp(match.distanceAlong / routeLength, 0, 1)
 
-return Guidance(target = getTarget(location, match), remainingDistance, offRoute, arrived, remainingRoute, remainingElevationGain = remainingGain, remainingElevationLoss = remainingLoss, progress = progress)
+if arrived
+    effortProgress = 1
+else if routeLength is 0
+    effortProgress = 0
+else
+    currentEffort = total scarf's distance along the route up to the matched position
+    effortProgress = clamp(currentEffort / total scarf's distance along the route, 0, 1)
+
+return Guidance(target = getTarget(location, match), remainingDistance, offRoute, arrived, remainingRoute, remainingElevationGain = remainingGain, remainingElevationLoss = remainingLoss, progress = progress, effortProgress = effortProgress)
 ```
 
 Elevation gain and loss are summed between consecutive route points (increases are gain, decreases are loss, which is negative), and interpolated within the matched segment. For this sum only, a point without an elevation takes the previous point's elevation, and leading points without one take the first known elevation (all 0 if none are known), as in `HikingService.getElevations`. The elevation at the matched position is the endpoint's if exactly at a segment endpoint, otherwise interpolated between the segment's endpoints (absent if either is absent).
