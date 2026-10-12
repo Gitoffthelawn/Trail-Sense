@@ -1080,7 +1080,7 @@
     <string name="append_onto">Append onto</string>
     <string name="simplify">Simplify</string>
     <string name="simplifying">Simplifying</string>
-    <string name="simplification_quality">Simplification quality</string>
+    <string name="quality">Quality</string>
     <string name="pref_auto_simplify_paths" translatable="false">pref_auto_simplify_paths</string>
     <string name="pref_auto_simplify_paths_title">Simplify paths on import</string>
     <string name="saving">Saving</string>
@@ -1323,6 +1323,7 @@
     <!-- As in "a preliminary sketch, outline, or version". Used for maps which aren't fully calibrated. -->
     <string name="draft">Draft</string>
     <string name="loading">Loading</string>
+    <string name="skip_elevations">Skip elevations</string>
     <!--    Unable to find the next astronomy event (ex. solar eclipse)-->
     <string name="unable_to_find_next_astronomy">Unable to find next %s</string>
     <!--    The action of printing a document/map-->
@@ -1602,8 +1603,6 @@
     <string name="pref_tool_settings_header_key" translatable="false">pref_tool_settings_header_key</string>
     <string name="quick_actions_are_unavailable">Quick actions are unavailable</string>
     <string name="bottom_navigation_slot">Bottom navigation slot %d</string>
-    <string name="pref_weather_forecast_source" translatable="false">pref_weather_forecast_source</string>
-    <string name="forecast_algorithm">Forecast algorithm</string>
     <string name="no_items_found">No items found</string>
     <string name="import_packing_list">Import packing list</string>
     <string name="pref_barometer_offset" translatable="false">pref_barometer_offset</string>
