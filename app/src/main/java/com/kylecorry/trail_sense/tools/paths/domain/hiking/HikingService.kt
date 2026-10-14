@@ -33,7 +33,8 @@ class HikingService : IHikingService {
         }
         val smoothed = DataUtils.smoothGeospatial(
             points,
-            0.1f,
+            0.25f, // Maximum span distance is the driving factor, but "smoothness" has to be large enough to pick up surrounding points
+            maximumSpanDistance = 0.25f,
             DataUtils.GeospatialSmoothingType.Path,
             { it.coordinate },
             { it.elevation ?: 0f }
@@ -143,8 +144,12 @@ class HikingService : IHikingService {
         speed: Speed
     ): Duration {
         val speedValue = speed.convertTo(DistanceUnits.Meters, TimeUnits.Seconds).value.coerceAtLeast(0.1f)
-        val scarfs = distance.meters().value + SCARF_ELEVATION_GAIN_FACTOR * elevationGain.meters().value
+        val scarfs = getScarfsDistance(distance, elevationGain).meters().value
         return Duration.ofSeconds((scarfs / speedValue).toLong())
+    }
+
+    fun getScarfsDistance(distance: Distance, elevationGain: Distance): Distance {
+        return Distance.meters(distance.meters().value + SCARF_ELEVATION_GAIN_FACTOR * elevationGain.meters().value)
     }
 
     override fun getHikingDuration(
@@ -162,8 +167,19 @@ class HikingService : IHikingService {
         return Geography.getElevationGain(elevations)
     }
 
+    /** Whether the path ends close enough to where it started to be followed as a loop. */
+    fun isLoop(points: List<Coordinate>): Boolean {
+        if (points.size < 3) return false
+        val length = Geography.getPathDistance(points).meters().value
+        val seam = points.first().distanceTo(points.last())
+        return length > LOOP_MIN_LENGTH && seam <= minOf(LOOP_MAX_SEAM, length * LOOP_MAX_SEAM_FRACTION)
+    }
+
     companion object {
         const val DEFAULT_PACE_FACTOR = 1.75f
         const val SCARF_ELEVATION_GAIN_FACTOR = 7.92f
+        private const val LOOP_MIN_LENGTH = 30f
+        private const val LOOP_MAX_SEAM = 100f
+        private const val LOOP_MAX_SEAM_FRACTION = 0.1f
     }
 }
