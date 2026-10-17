@@ -21,6 +21,8 @@ You can choose to manually create a path by doing the following:
 3. Give the path a name and tap 'OK'.
 4. Tap the '+ Point' button to add a point to the path at your current location. You can add as many points as you want.
 
+You can also draw a path on the map by tapping 'Draw on map' instead of 'Path' in step 2. The Map tool will open and you can tap the map to place points, then tap 'Create path' at the bottom when you are done.
+
 ## Importing paths
 If you have tracks or routes saved in a GPX file, you can import them into Trail Sense as paths.
 
@@ -76,6 +78,9 @@ You can choose to automatically simplify paths imported from a GPX file by enabl
 
 ## Replace path elevations
 To replace all elevations on a path using the digital elevation model (DEM), open the path, tap the menu button in the top-right corner of the screen, and select 'Replace elevations'. If it is taking too long to load (ex. too many points), you can cancel and your path will be unmodified.
+
+## Elevation smoothing
+Path elevations are smoothed to reduce GPS noise. You can adjust this in Settings > Paths > 'Elevation smoothing'. If you have a recent path with elevations, a preview shows its original elevations (gray) and the smoothed elevations. Higher values reduce more noise, but may also remove real climbs and descents.
 
 ## Navigate with a path
 To navigate with a path, open it and use the buttons in the 'Follow path' section at the bottom:

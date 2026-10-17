@@ -17,7 +17,7 @@ import com.kylecorry.trail_sense.shared.grouping.persistence.GroupDeleter
 import com.kylecorry.trail_sense.shared.grouping.persistence.GroupLoader
 import com.kylecorry.trail_sense.shared.grouping.persistence.IGroupLoader
 import com.kylecorry.trail_sense.shared.preferences.PreferencesSubsystem
-import com.kylecorry.trail_sense.tools.navigation.infrastructure.NavigationPreferences
+import com.kylecorry.trail_sense.tools.paths.infrastructure.PathsPreferences
 import com.kylecorry.trail_sense.tools.paths.domain.IPath
 import com.kylecorry.trail_sense.tools.paths.domain.IPathService
 import com.kylecorry.trail_sense.tools.navigation.infrastructure.Navigator
@@ -213,6 +213,10 @@ class PathService(
         return waypointRepo.getLastInPath(path)
     }
 
+    override suspend fun getMostRecentPathIdWithElevationChange(minChange: Float): Long? {
+        return waypointRepo.getMostRecentPathIdWithElevationChange(minChange)
+    }
+
     override fun getWaypointsLive(path: Long): LiveData<List<PathPoint>> {
         return waypointRepo.getAllInPathLive(path)
     }
@@ -228,9 +232,12 @@ class PathService(
         }
     }
 
-    override suspend fun replaceWaypoints(points: List<PathPoint>) {
+    override suspend fun updateWaypointElevations(path: Long, elevations: Map<Long, Float>) {
         waypointLock.withLock {
-            waypointRepo.addAll(points)
+            val updated = waypointRepo.getAllInPaths(listOf(path)).mapNotNull { point ->
+                elevations[point.id]?.let { point.copy(elevation = it) }
+            }
+            waypointRepo.addAll(updated)
         }
     }
 
@@ -399,7 +406,7 @@ class PathService(
                 instance = PathService(
                     PathRepo.getInstance(appContext),
                     WaypointRepo.getInstance(appContext),
-                    NavigationPreferences(appContext),
+                    PathsPreferences(appContext),
                     PreferencesSubsystem.getInstance(appContext).preferences
                 )
             }
