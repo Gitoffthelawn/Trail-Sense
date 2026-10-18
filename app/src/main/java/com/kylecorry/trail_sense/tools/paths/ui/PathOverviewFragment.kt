@@ -1,5 +1,6 @@
 package com.kylecorry.trail_sense.tools.paths.ui
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,6 +10,8 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.color.MaterialColors
 import com.kylecorry.andromeda.alerts.Alerts
 import com.kylecorry.andromeda.alerts.toast
 import com.kylecorry.andromeda.core.system.Resources
@@ -62,7 +65,10 @@ import com.kylecorry.trail_sense.tools.beacons.infrastructure.persistence.Beacon
 import com.kylecorry.trail_sense.tools.beacons.domain.BeaconIcon
 import com.kylecorry.trail_sense.tools.map.map_layers.MyLocationGeoJsonSource
 import com.kylecorry.trail_sense.tools.map.map_layers.ScaleBarLayer
+import com.kylecorry.trail_sense.tools.paths.PathsToolRegistration
 import com.kylecorry.trail_sense.tools.paths.domain.Path
+import com.kylecorry.trail_sense.tools.paths.domain.PathDirection
+import com.kylecorry.trail_sense.tools.paths.domain.PathDirectionRecommender
 import com.kylecorry.trail_sense.tools.paths.domain.PathPoint
 import com.kylecorry.trail_sense.tools.paths.domain.PathPointColoringStyle
 import com.kylecorry.trail_sense.tools.paths.domain.beacon.IPathPointBeaconConverter
@@ -70,6 +76,7 @@ import com.kylecorry.trail_sense.tools.paths.domain.beacon.TemporaryPathPointBea
 import com.kylecorry.trail_sense.tools.paths.domain.factories.IPointDisplayFactory
 import com.kylecorry.trail_sense.tools.paths.domain.hiking.HikingDifficulty
 import com.kylecorry.trail_sense.tools.paths.domain.hiking.HikingService
+import com.kylecorry.trail_sense.tools.paths.infrastructure.BacktrackScheduler
 import com.kylecorry.trail_sense.tools.paths.infrastructure.commands.BacktrackCommand
 import com.kylecorry.trail_sense.tools.paths.infrastructure.persistence.PathService
 import com.kylecorry.trail_sense.tools.paths.ui.commands.ChangePathColorCommand
@@ -85,6 +92,7 @@ import com.kylecorry.trail_sense.tools.paths.ui.commands.RenamePathCommand
 import com.kylecorry.trail_sense.tools.paths.ui.commands.ReplacePathElevationsCommand
 import com.kylecorry.trail_sense.tools.paths.ui.commands.SimplifyPathCommand
 import com.kylecorry.trail_sense.tools.paths.ui.commands.TogglePathVisibilityCommand
+import com.kylecorry.trail_sense.tools.tools.infrastructure.Tools
 import kotlinx.coroutines.launch
 import java.time.Duration
 
@@ -107,6 +115,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
     private var declination = 0f
     private val hikingService = HikingService()
     private var isLoop = false
+    private var isRecording = false
     private val pathService by lazy { PathService.getInstance(requireContext()) }
 
     private var pointSheet: PathPointsListFragment? = null
@@ -175,11 +184,19 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
             gps.horizontalAccuracy?.let { Distance.meters(it) }
 
         binding.pathImage.start()
+        Tools.subscribe(
+            PathsToolRegistration.BROADCAST_BACKTRACK_STATE_CHANGED,
+            this::onBacktrackChanged
+        )
     }
 
     override fun onPause() {
         super.onPause()
         binding.pathImage.stop()
+        Tools.unsubscribe(
+            PathsToolRegistration.BROADCAST_BACKTRACK_STATE_CHANGED,
+            this::onBacktrackChanged
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -189,7 +206,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
         binding.pathImage.isInteractive = true
 
         binding.pathImage.setOnTouchListener { v, event ->
-            binding.root.isScrollable = event.action == MotionEvent.ACTION_UP
+            binding.pathScroll.isScrollable = event.action == MotionEvent.ACTION_UP
             false
         }
 
@@ -199,7 +216,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
                 val legendHeight = Resources.dp(requireContext(), 72f).toInt()
                 LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    binding.root.height - legendHeight
+                    binding.pathScroll.height - legendHeight
                 )
             } else {
                 LinearLayout.LayoutParams(
@@ -213,7 +230,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
             binding.pathMapFullscreenToggle.setImageResource(if (isFullscreen) R.drawable.ic_fullscreen_exit else R.drawable.ic_recenter)
             val timer = CoroutineTimer {
                 if (isBound) {
-                    binding.root.scrollTo(0, binding.pathMapHolder.top)
+                    binding.pathScroll.scrollTo(0, binding.pathMapHolder.top)
                     binding.pathImage.fitIntoView(lastBounds)
                 }
             }
@@ -238,6 +255,10 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
                     }
                 }
             }
+        }
+
+        binding.stopRecordingBtn.setOnClickListener {
+            stopRecording()
         }
 
         binding.toEndBtn.setOnClickListener {
@@ -287,6 +308,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
 
         observe(gps) {
             updateDeclination()
+            updateFollowEmphasis()
             binding.pathImage.userLocation = gps.location
             binding.pathImage.userLocationAccuracy =
                 gps.horizontalAccuracy?.let { Distance.meters(it) }
@@ -328,6 +350,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
                         prefs.paths.elevationSmoothing
                     ).reversed()
             }
+            isRecording = isRecordingPath()
             onIO {
                 DebugPathElevationsCommand(
                     requireContext(),
@@ -342,6 +365,8 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
                 }
                 pointSheet?.setPoints(this@PathOverviewFragment.waypoints)
                 isLoop = hikingService.isLoop(waypoints.sortedBy { it.id }.map { it.coordinate })
+                updateRecordingBanner()
+                updateFollowEmphasis()
                 updateElevationOverview()
                 updateHikingStats()
                 updatePathMap()
@@ -504,6 +529,67 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
         lastBounds = Geography.getBounds(waypoints.map { it.coordinate })
         binding.pathImage.fitIntoView(lastBounds)
         updateMapLayer()
+    }
+
+    private fun updateRecordingBanner() {
+        if (!isBound) {
+            return
+        }
+        binding.pathRecordingBanner.isVisible = isRecording
+    }
+
+    private suspend fun isRecordingPath(): Boolean = onIO {
+        pathService.getBacktrackPathId() == pathId && BacktrackScheduler.isOn(requireContext())
+    }
+
+    @Suppress("UnusedParameter")
+    private suspend fun onBacktrackChanged(data: Bundle) = refreshRecording()
+
+    private suspend fun refreshRecording() {
+        isRecording = isRecordingPath()
+        onMain {
+            updateRecordingBanner()
+            updateFollowEmphasis()
+        }
+    }
+
+    private fun stopRecording() {
+        inBackground {
+            onIO {
+                Tools.getService(requireContext(), PathsToolRegistration.SERVICE_BACKTRACK)
+                    ?.disable()
+            }
+            refreshRecording()
+        }
+    }
+
+    private fun updateFollowEmphasis() {
+        if (!isBound) {
+            return
+        }
+        // The waypoints are ordered from newest to oldest
+        val start = waypoints.lastOrNull()?.coordinate
+        val end = waypoints.firstOrNull()?.coordinate
+        // The recording path's end is the user's location, so a GPS reading isn't needed
+        val hasLocation = isRecording || gps.hasValidReading
+        val recommended = if (start != null && end != null && hasLocation) {
+            PathDirectionRecommender.recommend(start, end, gps.location, isRecording, isLoop)
+        } else {
+            null
+        }
+        emphasize(binding.toStartBtn, recommended == PathDirection.ToStart)
+        emphasize(binding.toEndBtn, recommended == PathDirection.ToEnd)
+    }
+
+    private fun emphasize(button: MaterialButton, emphasized: Boolean) {
+        val (background, foreground) = if (emphasized) {
+            androidx.appcompat.R.attr.colorPrimary to com.google.android.material.R.attr.colorOnPrimary
+        } else {
+            com.google.android.material.R.attr.colorSecondaryContainer to
+                    com.google.android.material.R.attr.colorOnSecondaryContainer
+        }
+        button.backgroundTintList = ColorStateList.valueOf(MaterialColors.getColor(button, background))
+        button.setTextColor(MaterialColors.getColor(button, foreground))
     }
 
     private fun onPathChanged() {
@@ -716,7 +802,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
     }
 
     private fun viewPoints() {
-        binding.root.scrollTo(0, 0)
+        binding.pathScroll.scrollTo(0, 0)
         pointSheet = PathPointsListFragment()
         pointSheet?.show(this)
         pointSheet?.onCreateBeaconListener = { createBeacon(it) }
