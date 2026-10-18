@@ -292,9 +292,7 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         }
 
         // Navigate
-        scrollUntil(R.id.path_scroll) {
-            click(string(R.string.path_direction_to_end))
-        }
+        click(string(R.string.path_direction_to_end))
 
         isVisible(R.id.navigation_title)
         hasText("Test Path")
@@ -422,6 +420,8 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         // Wait for the path to be created
         isVisible(com.kylecorry.andromeda.views.R.id.title, waitForTime = GPS_WAIT_FOR_TIMEOUT)
 
+        hasText(string(R.string.temporary))
+
         // Stop backtrack
         click(R.id.play_btn)
 
@@ -429,6 +429,9 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         if (AutomationLibrary.packageName == null) {
             not { notification(BacktrackAlerter.NOTIFICATION_ID) }
         }
+
+        // The path is kept when stopped
+        not { hasText(string(R.string.temporary)) }
     }
 
     private fun verifyQuickAction() {
@@ -471,6 +474,30 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         TestData.addPathFromGpx("Sprague", "paths/sprague.gpx")
         TestData.addPathFromGpx("Durfee Short", "paths/durfee short.gpx")
         TestData.addPathFromGpx("Mansfield", "paths/mount mansfield.gpx")
+    }
+
+    @Test
+    fun canStopBacktrackFromRecordingPathDetails() {
+        assumeFalse(isStagingBuild)
+
+        click(R.id.play_btn)
+        optional {
+            hasText(string(R.string.battery_settings_limit_accuracy))
+            not { hasText(string(R.string.battery_settings_limit_accuracy)) }
+        }
+        hasText(R.id.play_bar_title, "On - 1m")
+
+        // Wait for the path to be created
+        isVisible(com.kylecorry.andromeda.views.R.id.title, waitForTime = GPS_WAIT_FOR_TIMEOUT)
+
+        click(com.kylecorry.andromeda.views.R.id.title)
+        isVisible(R.id.stop_recording_btn)
+
+        click(R.id.stop_recording_btn)
+        not { isVisible(R.id.stop_recording_btn) }
+
+        back()
+        hasText(R.id.play_bar_title, "Off - 1m")
     }
 
     @Test
@@ -564,9 +591,8 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         openWithSavedPaths()
 
         click("Durfee Short")
-        scrollUntil(R.id.path_scroll) {
-            click(string(R.string.path_direction_to_end))
-        }
+        isVisible(R.id.to_start_btn)
+        click(string(R.string.path_direction_to_end))
 
         isVisible(R.id.navigation_title)
         assertFalse(runBlocking { PathNavigationStore().load() }!!.reversed)
@@ -578,9 +604,7 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
 
         // Following a different direction replaces the route
         backUntil { isVisible(R.id.path_scroll) }
-        scrollUntil(R.id.path_scroll) {
-            click(string(R.string.path_direction_to_start))
-        }
+        click(string(R.string.path_direction_to_start))
 
         isVisible(R.id.navigation_title)
         assertTrue(runBlocking { PathNavigationStore().load() }!!.reversed)
