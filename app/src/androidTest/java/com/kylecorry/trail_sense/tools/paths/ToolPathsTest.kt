@@ -16,6 +16,7 @@ import com.kylecorry.trail_sense.test_utils.AutomationLibrary.GPS_WAIT_FOR_TIMEO
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.backUntil
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.click
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.clickOk
+import com.kylecorry.trail_sense.test_utils.AutomationLibrary.delay
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.hasDataPoint
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.hasText
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.hasTextsInOrder
@@ -73,7 +74,6 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         addPathGroup()
         importPath()
         createEmptyPath()
-        createPathOnMap()
         groupOperations()
         pathOperations()
         searchPath()
@@ -113,12 +113,21 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         backUntil { isVisible(R.id.paths_title) }
     }
 
-    private fun createPathOnMap() {
+    @Test
+    fun canCreatePathOnMap() {
         click(R.id.add_btn)
         click(string(R.string.create_path_on_map))
         optional { clickOk() }
         hasText("Distance")
         hasText("Create path")
+
+        // Tapping the map should add points to the path
+        click(R.id.map, xPercent = 0.3f, yPercent = 0.3f)
+        // Wait so the next tap isn't treated as a double tap (zoom)
+        delay(600)
+        click(R.id.map, xPercent = 0.7f, yPercent = 0.3f)
+        hasText(Regex("[1-9]\\d*(\\.\\d+)? (mi|ft)"))
+
         click(toolbarButton(R.id.map_distance_title, Side.Right))
         backUntil { isVisible(R.id.paths_title) }
     }
@@ -251,14 +260,15 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         hasText("0m")
         hasText("Duration")
 
-        hasText("1")
-        hasText("Points")
-
         hasText("0 ft")
         hasText("Distance")
 
-        hasText("Easy")
-        hasText("Difficulty")
+        scrollUntil(R.id.path_scroll) {
+            hasText("1")
+            hasText("Points")
+            hasText("Easy")
+            hasText("Difficulty")
+        }
 
         scrollUntil(R.id.path_scroll) {
             hasText("0 ft")
@@ -360,12 +370,6 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         click("Hide")
         click(toolbarButton(R.id.path_title, Side.Right))
         click("Show")
-
-        // Keep forever
-        click(toolbarButton(R.id.path_title, Side.Right))
-        click("Keep forever")
-        click(toolbarButton(R.id.path_title, Side.Right))
-        not { hasText("Keep forever") }
 
         backUntil { isVisible(R.id.paths_title) }
     }
@@ -477,6 +481,27 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
     }
 
     @Test
+    fun canKeepATemporaryPathForever() {
+        assumeFalse(isStagingBuild)
+        relaunchTool {
+            TestData.addPath(
+                "Recording",
+                TestData.loadGpxPoints("paths/durfee short.gpx"),
+                temporary = true
+            )
+        }
+
+        hasText(string(R.string.temporary))
+        click("Recording")
+        hasText(R.id.path_title, "Recording")
+
+        click(toolbarButton(R.id.path_title, Side.Right))
+        click(string(R.string.keep_forever))
+        click(toolbarButton(R.id.path_title, Side.Right))
+        not { hasText(string(R.string.keep_forever)) }
+    }
+
+    @Test
     fun canStopBacktrackFromRecordingPathDetails() {
         assumeFalse(isStagingBuild)
 
@@ -552,10 +577,12 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         hasDataPoint("15m", string(R.string.duration))
         // 0.498 miles between the 39 recorded points
         hasDataPoint("0.5 mi", string(R.string.distance))
-        hasDataPoint("39", string(R.string.points))
-        hasDataPoint("Moderate", string(R.string.difficulty))
-        hasDataPoint(Regex("\\d{1,2} ft"), string(R.string.ascent))
-        hasDataPoint(Regex("-\\d{2} ft"), string(R.string.descent))
+        scrollUntil(R.id.path_scroll) {
+            hasDataPoint("39", string(R.string.points))
+            hasDataPoint("Moderate", string(R.string.difficulty))
+            hasDataPoint(Regex("\\d{1,2} ft"), string(R.string.ascent))
+            hasDataPoint(Regex("-\\d{2} ft"), string(R.string.descent))
+        }
 
         // The recorded elevations range from 522 ft to 590 ft
         scrollUntil(R.id.path_scroll) {
@@ -572,18 +599,22 @@ class ToolPathsTest : ToolTestBase(Tools.PATHS, Coordinate(42.03, -71.97)) {
         click("Sprague")
         hasText(R.id.path_title, "Sprague")
         hasDataPoint("3.71 mi", string(R.string.distance))
-        hasDataPoint("90", string(R.string.points))
         // The recording has no meaningful timestamps, so the duration is estimated from the pace
         hasDataPoint(Regex("1h \\d+m"), string(R.string.duration))
+        scrollUntil(R.id.path_scroll) {
+            hasDataPoint("90", string(R.string.points))
+        }
         back()
 
         click("Mansfield")
         hasText(R.id.path_title, "Mansfield")
         hasDataPoint("4.91 mi", string(R.string.distance))
-        hasDataPoint("175", string(R.string.points))
         // The raw recording climbs 2655 ft, the app smooths out elevation noise
-        hasDataPoint(Regex("25\\d\\d ft"), string(R.string.ascent))
-        hasDataPoint(Regex("-25\\d\\d ft"), string(R.string.descent))
+        scrollUntil(R.id.path_scroll) {
+            hasDataPoint("175", string(R.string.points))
+            hasDataPoint(Regex("25\\d\\d ft"), string(R.string.ascent))
+            hasDataPoint(Regex("-25\\d\\d ft"), string(R.string.descent))
+        }
     }
 
     @Test
