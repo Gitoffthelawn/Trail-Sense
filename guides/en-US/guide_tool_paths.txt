@@ -88,9 +88,7 @@ To navigate with a path, open it and use the buttons pinned to the bottom of the
 - **Follow to end**: Follow the path in its recorded direction from your nearest point on it to its end.
 - **Follow to start**: Follow the path in the opposite direction from your nearest point on it to its start.
 
-The button for the direction you most likely want is highlighted. Neither is highlighted for loop paths or when your location is unavailable.
-
-For loop paths, you can also open the path menu and select 'Follow to trailhead' to take the shortest route back to the first point of the path, even if that means crossing from the end of the path to its start.
+The button for the direction you most likely want is highlighted.
 
 To navigate to a specific point on the path, select the desired waypoint and use its menu:
 

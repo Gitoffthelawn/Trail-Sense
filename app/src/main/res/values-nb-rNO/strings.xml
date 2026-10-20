@@ -431,7 +431,6 @@
     <string name="location_not_mocked">Bruker faktisk posisjon</string>
     <string name="pref_flashlight_toggle_with_volume_title">Slå av/på med volumknapper</string>
     <string name="pref_flashlight_toggle_with_volume_summary">Mens Trail Sense er åpen</string>
-    <string name="pref_navigation_lock_screen_presence_title">Vis på låseskjermen under navigering</string>
     <string name="pref_privacy_screenshot_protection_title">Forhindre skjermbilder</string>
     <string name="grams_format">%s g</string>
     <string name="kilograms_format">%s kg</string>
@@ -1189,7 +1188,6 @@
     <string name="airplane_mode">Flymodus</string>
     <string name="pref_night_mode_fullscreen_title">Fullskjerm i nattmodus</string>
     <string name="show_below_horizon">Vis under horisont</string>
-    <string name="cancel_navigation_question">Avbryte navigering?</string>
     <string name="elevation_value">Høyde: %s</string>
     <string name="guide_map_layers">Kartlag</string>
     <string name="draw_accurate_shadows">Tegn nøyaktige skygger</string>

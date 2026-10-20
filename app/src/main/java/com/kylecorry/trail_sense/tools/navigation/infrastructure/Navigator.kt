@@ -2,12 +2,10 @@ package com.kylecorry.trail_sense.tools.navigation.infrastructure
 
 import android.content.Context
 import com.kylecorry.andromeda.core.cache.DependencyRegistry
-import com.kylecorry.andromeda.core.cache.GeospatialCache
 import com.kylecorry.luna.concurrency.BackgroundTask
 import com.kylecorry.sol.science.geophysics.Geophysics
 import com.kylecorry.sol.units.Bearing
 import com.kylecorry.sol.units.Coordinate
-import com.kylecorry.sol.units.Distance
 import com.kylecorry.trail_sense.shared.UserPreferences
 import com.kylecorry.trail_sense.shared.declination.DeclinationUtils
 import com.kylecorry.trail_sense.shared.dem.DEM
@@ -20,8 +18,8 @@ import com.kylecorry.trail_sense.tools.navigation.NavigationToolRegistration
 import com.kylecorry.trail_sense.tools.navigation.domain.Destination
 import com.kylecorry.trail_sense.tools.navigation.domain.NavigationBearing
 import com.kylecorry.trail_sense.tools.navigation.domain.NavigationBearingService
+import com.kylecorry.trail_sense.tools.navigation.domain.paths.PathFollow
 import com.kylecorry.trail_sense.tools.paths.domain.Path
-import com.kylecorry.trail_sense.tools.paths.domain.PathPoint
 import com.kylecorry.trail_sense.tools.tools.infrastructure.Tools
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +29,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.time.Instant
 
 class Navigator private constructor(context: Context) {
@@ -41,8 +38,6 @@ class Navigator private constructor(context: Context) {
     private val beacons = BeaconService(context)
     private val bearings = NavigationBearingService.getInstance(context)
     private val locationSubsystem = DependencyRegistry.get<LocationSubsystem>()
-
-    private val declinationCache = GeospatialCache<Float>(Distance.kilometers(10f), 10)
 
     // Flows
     private val _destinationId = MutableStateFlow(getDestinationId())
@@ -83,15 +78,10 @@ class Navigator private constructor(context: Context) {
             path ?: beacon ?: bearing
         }
 
-    suspend fun navigateAlongPath(
-        path: Path,
-        points: List<PathPoint>,
-        reversed: Boolean = false,
-        destinationPointId: Long? = null
-    ) {
+    suspend fun navigateAlongPath(path: Path, follow: PathFollow) {
+        pathNavigator.navigate(path, follow)
         cancelBeaconNavigation()
         clearBearing()
-        pathNavigator.navigate(path, points, reversed, destinationPointId)
     }
 
     private val listenTask = BackgroundTask {
@@ -130,6 +120,10 @@ class Navigator private constructor(context: Context) {
 
     fun navigateTo(beaconId: Long) {
         pathNavigator.cancel()
+        setBeaconDestination(beaconId)
+    }
+
+    private fun setBeaconDestination(beaconId: Long) {
         prefs.putLong(DESTINATION_ID_KEY, beaconId)
         _destinationId.value = beaconId
         _forceUpdate.update { it + 1 }
@@ -145,10 +139,34 @@ class Navigator private constructor(context: Context) {
         pathNavigator.cancel(pathId)
     }
 
-    suspend fun cancelAllNavigation() {
+    /**
+     * Cancels all navigation.
+     * @return a function which restores the navigation that was cancelled, unless the user has
+     * started navigating somewhere else since
+     */
+    suspend fun cancelAllNavigation(): suspend () -> Unit {
+        val beaconId = getDestinationId()
+        val bearing = navigationBearing.firstOrNull()
+        val pathSession = pathNavigator.currentSession()
+
         pathNavigator.cancel()
         cancelBeaconNavigation()
         clearBearing()
+
+        return restore@{
+            if (isNavigating()) {
+                return@restore
+            }
+            beaconId?.let { setBeaconDestination(it) }
+            bearing?.let { bearings.setBearing(it) }
+            pathSession?.let { pathNavigator.restore(it) }
+        }
+    }
+
+    private suspend fun isNavigating(): Boolean {
+        return getDestinationId() != null ||
+                navigationBearing.firstOrNull() != null ||
+                pathNavigator.currentSession() != null
     }
 
     fun getDestinationId(): Long? {
@@ -178,11 +196,11 @@ class Navigator private constructor(context: Context) {
 
     fun getBearing(
         myLocation: Coordinate,
-        locationAccuracy: Distance?,
-        destination: Destination
+        destination: Destination,
+        declination: Float
     ): Bearing {
         val target = when (destination) {
-            is Destination.Path -> destination.route.navigate(myLocation, locationAccuracy).target
+            is Destination.Path -> destination.route.guidance.target
             is Destination.Beacon -> destination.beacon.coordinate
             is Destination.Bearing -> {
                 if (destination.startingLocation == null || !userPrefs.navigation.lockBearingToLocation) {
@@ -195,20 +213,16 @@ class Navigator private constructor(context: Context) {
         return fromTrueNorth(
             myLocation.bearingTo(target),
             userPrefs.compass.useTrueNorth,
-            getDeclination(myLocation)
+            declination
         )
     }
 
     private fun getDeclination(location: Coordinate): Float {
         return if (userPrefs.useAutoDeclination) {
-            runBlocking {
-                declinationCache.getOrPut(location) {
-                    Geophysics.getGeomagneticDeclination(
-                        location,
-                        locationSubsystem.elevation.meters().value
-                    )
-                }
-            }
+            Geophysics.getGeomagneticDeclination(
+                location,
+                locationSubsystem.elevation.meters().value
+            )
         } else {
             userPrefs.declinationOverride
         }

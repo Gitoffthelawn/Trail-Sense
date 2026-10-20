@@ -27,30 +27,26 @@ internal class Snap(
 /**
  * Spatial queries over a polyline, with positions given as distances along it.
  */
-internal class RouteGeometry(points: List<Coordinate>) {
-    // A single point is treated as a zero length segment so every route has at least one segment
-    private val routePoints = if (points.size == 1) points + points else points
+internal class RouteGeometry(private val routePoints: List<Coordinate>) {
     private val latitudes = DoubleArray(routePoints.size) { routePoints[it].latitude }
     private val longitudes = DoubleArray(routePoints.size) { routePoints[it].longitude }
     private val cumulativeDistances = HikingService().getDistances(routePoints).toFloatArray()
     private val lastSegment = routePoints.lastIndex - 1
     val length: Float = cumulativeDistances.last()
 
-    private val cornerDistances by lazy { findCorners() }
-
     /** The distance along the route to the point at [pointIndex]. */
     fun distanceAt(pointIndex: Int): Float = cumulativeDistances[pointIndex]
 
     /**
-     * The snaps that are within [tolerance] of the closest one, in route order. Overlapping
+     * The snaps that are within the GPS noise of the closest one, in route order. Overlapping
      * parts of a route (ex. the start and end of an out and back) are indistinguishable within the
      * GPS error, so the closest is not necessarily the right one. The route must have a length.
      */
-    fun candidateSnaps(location: Coordinate, tolerance: Float = GPS_NOISE_TOLERANCE_METERS): List<Snap> {
+    fun candidateSnaps(location: Coordinate): List<Snap> {
         val plane = LocalPlane(location)
         val snaps = (0..lastSegment).mapNotNull { projectOnto(it, plane, 0f, length) }
         val closest = snaps.minOf { it.offset }
-        return snaps.filter { it.offset <= closest + tolerance }
+        return snaps.filter { it.offset <= closest + ROUTING_SAME_PLACE_TOLERANCE_METERS }
     }
 
     fun coordinateOf(snap: Snap): Coordinate {
@@ -87,11 +83,6 @@ internal class RouteGeometry(points: List<Coordinate>) {
     fun pointAt(distance: Float): Coordinate {
         val segment = segmentContaining(distance)
         return interpolate(segment, fractionAlong(segment, distance))
-    }
-
-    /** The distances along the route of the sharp turns that are after [from] and up to [to]. */
-    fun cornersBetween(from: Float, to: Float): List<Float> {
-        return cornerDistances.subList(firstCornerAfter(from), firstCornerAfter(to))
     }
 
     // Projects the plane's origin onto the part of the segment between minDistance and maxDistance
@@ -154,40 +145,6 @@ internal class RouteGeometry(points: List<Coordinate>) {
         return Coordinate(latitude, longitudes[segment] + fraction * longitudeChange)
     }
 
-    private fun firstCornerAfter(distance: Float): Int {
-        return firstIndex(cornerDistances.size) { cornerDistances[it] > distance }
-    }
-
-    // A corner is where the direction of travel, measured over a short stretch before and after a
-    // point, changes sharply. Measuring over a stretch rather than between adjacent points keeps
-    // GPS jitter in densely recorded paths from looking like corners. Sharp points close together
-    // (ex. along a tight bend) are one corner, located at the sharpest of them.
-    private fun findCorners(): List<Float> {
-        val turns = routePoints.indices.map(::turnAt)
-        val corners = mutableListOf<MutableList<Int>>()
-        for (point in routePoints.indices.filter { turns[it] >= CORNER_TURN_DEGREES }) {
-            val corner = corners.lastOrNull()
-            if (corner != null && cumulativeDistances[point] - cumulativeDistances[corner.last()] <= CORNER_CHORD_METERS) {
-                corner.add(point)
-            } else {
-                corners.add(mutableListOf(point))
-            }
-        }
-        return corners.map { corner -> cumulativeDistances[corner.maxBy { turns[it] }] }
-    }
-
-    // The change in direction, in degrees, between arriving at and leaving the point
-    private fun turnAt(index: Int): Float {
-        val distance = cumulativeDistances[index]
-        val plane = LocalPlane(Coordinate(latitudes[index], longitudes[index]))
-        val incoming = Vector2.zero - plane.toMeters(pointAt(distance - CORNER_CHORD_METERS))
-        val outgoing = plane.toMeters(pointAt(distance + CORNER_CHORD_METERS))
-        if (incoming.magnitude() < MIN_CORNER_CHORD_METERS || outgoing.magnitude() < MIN_CORNER_CHORD_METERS) {
-            return 0f
-        }
-        return abs(Trigonometry.deltaAngle(incoming.angle(), outgoing.angle()))
-    }
-
     // Binary search for the first index below count where the condition holds (or count if none),
     // given the condition is false for all indices before it and true for all after
     private inline fun firstIndex(count: Int, condition: (Int) -> Boolean): Int {
@@ -225,9 +182,5 @@ internal class RouteGeometry(points: List<Coordinate>) {
         const val METERS_PER_DEGREE: Double = Geology.EARTH_AVERAGE_RADIUS * PI / 180.0
         const val ESTIMATE_DISTANCE_WEIGHT = 0.01f
         const val MAX_ESTIMATE_DISTANCE_PENALTY_METERS = 5f
-        const val CORNER_CHORD_METERS = 15f
-        const val MIN_CORNER_CHORD_METERS = 3f
-        const val CORNER_TURN_DEGREES = 35f
-        const val GPS_NOISE_TOLERANCE_METERS = 5f
     }
 }

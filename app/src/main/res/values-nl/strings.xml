@@ -518,7 +518,6 @@
     <string name="import_map">Kaart importeren</string>
     <string name="pref_cell_signal_refresh_cache_summary">Forceert het laden van de nieuwste signaalsterktes</string>
     <string name="pref_cell_signal_refresh_cache_title">Signaalcache vernieuwen</string>
-    <string name="pref_navigation_lock_screen_presence_title">Op vergrendelscherm weergeven tijdens navigeren</string>
     <string name="map_perspective_instructions">Maak een overzicht van de kaart</string>
     <string name="preview">Voorbeeld</string>
     <string name="moved_to">Verplaatst naar %s</string>
@@ -1449,7 +1448,6 @@
     <string name="widget_theme_black_text">Zwarte tekst</string>
     <string name="widget_theme_white_text">Witte tekst</string>
     <string name="default_widget_theme">Standaard widgetthema</string>
-    <string name="cancel_navigation_question">Navigatie annuleren?</string>
     <string name="elevation_value">Hoogte: %s</string>
     <string name="show_pressure_forecast">Drukverwachting op grafiek weergeven</string>
     <string name="moa_amount">%s Hoekminuut</string>

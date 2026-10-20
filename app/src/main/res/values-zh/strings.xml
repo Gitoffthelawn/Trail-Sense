@@ -503,7 +503,6 @@
     <string name="convert">单位换算</string>
     <string name="map_perspective_instructions">勾勒地图轮廓</string>
     <string name="preview">预览</string>
-    <string name="pref_navigation_lock_screen_presence_title">导航时在锁定屏幕上显示</string>
     <string name="import_map">导入地图</string>
     <string name="pref_cell_signal_refresh_cache_summary">强制加载最新信号强度</string>
     <string name="pref_cell_signal_refresh_cache_title">刷新信号缓存</string>
@@ -1433,7 +1432,6 @@
     <string name="widget_theme_black_text">黑色文本</string>
     <string name="widget_theme_white_text">白色文本</string>
     <string name="default_widget_theme">默认小部件主题</string>
-    <string name="cancel_navigation_question">取消导航？</string>
     <string name="elevation_value">海拔：%s</string>
     <string name="show_pressure_forecast">在图表上显示气压预报</string>
     <string name="moa_amount">%s 角分</string>

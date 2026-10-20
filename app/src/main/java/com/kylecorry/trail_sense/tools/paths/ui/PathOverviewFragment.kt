@@ -34,12 +34,14 @@ import com.kylecorry.sol.math.MathExtensions.roundPlaces
 import com.kylecorry.sol.math.statistics.Statistics
 import com.kylecorry.sol.science.geography.Geography
 import com.kylecorry.sol.science.geology.CoordinateBounds
-import com.kylecorry.sol.science.geology.Geology
 import com.kylecorry.sol.units.Distance
 import com.kylecorry.trail_sense.R
+import com.kylecorry.trail_sense.tools.navigation.domain.paths.PathFollow
 import com.kylecorry.trail_sense.tools.navigation.infrastructure.Navigator
+import com.kylecorry.trail_sense.tools.navigation.ui.NavigatorFragment
 import com.kylecorry.trail_sense.databinding.FragmentPathOverviewBinding
 import com.kylecorry.trail_sense.databinding.ListItemWaypointBinding
+import com.kylecorry.trail_sense.main.getAppService
 import com.kylecorry.trail_sense.shared.FormatService
 import com.kylecorry.trail_sense.shared.Units
 import com.kylecorry.trail_sense.shared.UserPreferences
@@ -77,7 +79,7 @@ import com.kylecorry.trail_sense.tools.paths.domain.factories.IPointDisplayFacto
 import com.kylecorry.trail_sense.tools.paths.domain.hiking.HikingDifficulty
 import com.kylecorry.trail_sense.tools.paths.domain.hiking.HikingService
 import com.kylecorry.trail_sense.tools.paths.infrastructure.BacktrackScheduler
-import com.kylecorry.trail_sense.tools.paths.infrastructure.commands.BacktrackCommand
+import com.kylecorry.trail_sense.tools.paths.infrastructure.commands.AddPathPointCommand
 import com.kylecorry.trail_sense.tools.paths.infrastructure.persistence.PathService
 import com.kylecorry.trail_sense.tools.paths.ui.commands.ChangePathColorCommand
 import com.kylecorry.trail_sense.tools.paths.ui.commands.ChangePathLineStyleCommand
@@ -112,9 +114,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
             gps
         )
     }
-    private var declination = 0f
     private val hikingService = HikingService()
-    private var isLoop = false
     private var isRecording = false
     private val pathService by lazy { PathService.getInstance(requireContext()) }
 
@@ -150,10 +150,13 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
         )
     }
 
+    private val navigator by lazy { getAppService<Navigator>() }
+
     private val beaconNavigator: IBeaconNavigator by lazy {
         BeaconNavigator(
             BeaconService(requireContext()),
-            NavControllerAppNavigation(findNavController())
+            NavControllerAppNavigation(findNavController()),
+            navigator
         )
     }
 
@@ -239,7 +242,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
             inBackground {
                 var wasSuccessful = false
                 val job = launch {
-                    BacktrackCommand(requireContext(), pathId).execute()
+                    AddPathPointCommand(requireContext(), pathId).execute()
                     wasSuccessful = true
                 }
 
@@ -260,11 +263,11 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
         }
 
         binding.toEndBtn.setOnClickListener {
-            followPath()
+            followPath(PathFollow.Direction(PathDirection.ToEnd))
         }
 
         binding.toStartBtn.setOnClickListener {
-            followPath(reversed = true)
+            followPath(PathFollow.Direction(PathDirection.ToStart))
         }
 
         binding.pathTitle.rightButton.setOnClickListener {
@@ -366,7 +369,6 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
                     deselectPoint()
                 }
                 pointSheet?.setPoints(this@PathOverviewFragment.waypoints)
-                isLoop = hikingService.isLoop(waypoints.sortedBy { it.id }.map { it.coordinate })
                 updateRecordingBanner()
                 updateFollowEmphasis()
                 updateElevationOverview()
@@ -465,14 +467,6 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
                 replaceElevations(path)
                 true
             },
-            if (isLoop) {
-                MenuItem(getString(R.string.path_navigation_trailhead)) {
-                    navigateToTrailhead()
-                    true
-                }
-            } else {
-                null
-            },
             MenuItem(getString(R.string.points)) {
                 viewPoints()
                 true
@@ -558,6 +552,9 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
         }
     }
 
+    private val canFollow: Boolean
+        get() = (path?.metadata?.distance?.value ?: 0f) > 0f
+
     private fun updateFollowEmphasis() {
         if (!isBound) {
             return
@@ -568,7 +565,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
         // The recording path's end is the user's location, so a GPS reading isn't needed
         val hasLocation = isRecording || gps.hasValidReading
         val recommended = if (start != null && end != null && hasLocation) {
-            PathDirectionRecommender.recommend(start, end, gps.location, isRecording, isLoop)
+            PathDirectionRecommender.recommend(start, end, gps.location, isRecording)
         } else {
             null
         }
@@ -604,15 +601,9 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
     private fun updatePathDetails() {
         val path = path ?: return
 
-        binding.pathLineStyle.text = listOf(
-            getString(R.string.solid),
-            getString(R.string.dotted),
-            getString(R.string.arrow),
-            getString(R.string.dashed),
-            getString(R.string.square),
-            getString(R.string.diamond),
-            getString(R.string.cross)
-        )[path.style.line.ordinal]
+        binding.followOptions.isVisible = canFollow
+
+        binding.pathLineStyle.text = getLineStyleNames(requireContext()).getValue(path.style.line)
 
         val distance =
             path.metadata.distance.convertTo(prefs.baseDistanceUnits).toRelativeDistance()
@@ -733,8 +724,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
     private fun updateDeclination() {
         inBackground {
             onIO {
-                declination = declinationProvider.getDeclination()
-                compass.declination = declination
+                compass.declination = declinationProvider.getDeclination()
             }
         }
     }
@@ -752,13 +742,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
 
         val factory = getPointFactory()
 
-        binding.pathPointStyle.text = listOf(
-            getString(R.string.none),
-            getString(R.string.cell_signal),
-            getString(R.string.elevation),
-            getString(R.string.time),
-            getString(R.string.path_slope)
-        )[path.style.point.ordinal]
+        binding.pathPointStyle.text = getPointStyleNames(requireContext()).getValue(path.style.point)
 
         binding.pathLegend.colorScale = factory.createColorScale(waypoints)
         binding.pathLegend.labels = factory.createLabelMap(waypoints)
@@ -781,7 +765,8 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
             { deleteWaypoint(it) },
             { navigateToWaypoint(it) },
             { navigateDirectlyToWaypoint(it) },
-            { /* Do nothing */ }
+            { /* Do nothing */ },
+            canFollow
         )
 
         itemStrategy.display(itemBinding, item)
@@ -791,6 +776,7 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
         binding.pathScroll.scrollTo(0, 0)
         val sheet = PathPointsListFragment()
         pointSheet = sheet
+        sheet.canFollow = canFollow
         sheet.show(this)
         sheet.onCreateBeaconListener = { createBeacon(it) }
         sheet.onDeletePointListener = { deleteWaypoint(it) }
@@ -823,31 +809,22 @@ class PathOverviewFragment : BoundFragment<FragmentPathOverviewBinding>() {
     }
 
     private fun navigateToWaypoint(point: PathPoint) {
-        followPath(destinationPointId = point.id)
+        followPath(PathFollow.ToPoint(point.id))
     }
 
-    private fun followPath(
-        reversed: Boolean = false,
-        destinationPointId: Long? = null
-    ) {
+    private fun followPath(follow: PathFollow) {
         val selectedPath = path ?: return
-        if (waypoints.isEmpty()) return
         inBackground {
-            Alerts.withLoading(requireContext(), getString(R.string.loading)) {
-                val navigator = Navigator.getInstance(requireContext())
-                onDefault {
-                    navigator.navigateAlongPath(
-                        selectedPath, pathService.getWaypoints(selectedPath.id), reversed, destinationPointId
-                    )
-                }
+            navigator.navigateAlongPath(selectedPath, follow)
+            onMain {
+                findNavController().navigate(
+                    R.id.action_navigation,
+                    Bundle().apply {
+                        putBoolean(NavigatorFragment.ARG_NAVIGATION_STARTED, true)
+                    }
+                )
             }
-            onMain { findNavController().navigate(R.id.action_navigation) }
         }
-    }
-
-    private fun navigateToTrailhead() {
-        val firstWaypoint = waypoints.minByOrNull { it.id } ?: return
-        followPath(destinationPointId = firstWaypoint.id)
     }
 
     private fun navigateDirectlyToWaypoint(point: PathPoint) {

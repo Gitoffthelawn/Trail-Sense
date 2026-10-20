@@ -14,7 +14,7 @@ Closed issues are not removed by the project: its "Item closed" workflow only up
 
 1. Run `python3 .agents/skills/trail-sense-sync-priority-project/scripts/sync_plan.py` (read-only). Its JSON lists `remove_closed`, `remove_community`, `new` (open, not community available, not in the project), `misplaced` (project items outside their priority section), `no_single_priority` (project items with no priority label or more than one) and `order` (the current project order, with each item's `priority`). This step is complete when the JSON is read and the counts are known.
 2. If `new` and `misplaced` are both empty, skip to step 4 with an empty `insert` list (removals need no approval). Otherwise rank each new and misplaced issue using the criteria below and read its title, labels and body (the `body` field is truncated; run `gh issue view <n>` when the intent is unclear). The anchor must land inside the issue's priority section: after an item of the same priority, or directly after the last item of the section above when it goes first in its own. A new issue with no priority label has no section, so rank it by value alone and mention in step 3 which section it landed in. This step is complete when every new and misplaced issue has an `after` anchor, an existing project issue it goes directly below, or `null` for the very top. Do not anchor to another misplaced issue unless that one is also being moved earlier in the plan.
-3. Show the user a table for approval: the new or misplaced issue (marked as such, with its priority), the proposed anchor (`after #X <title>`), and a one-line reason. List any `no_single_priority` items so the maintainer can fix their labels. Also list what will be removed (closed and community available, with titles). This step is complete when the user has approved or adjusted the positions. Do not change the project before then.
+3. Show the user a table for approval: the new or misplaced issue (marked as such, with its priority), the proposed anchor (`after #X <title>`), its resulting position (a "Position" column: the 1-based row number the issue will have in the project once all approved removals and inserts are applied), and a one-line reason. Compute positions from `order` by dropping the removed items, then applying the inserts in list order. List any `no_single_priority` items so the maintainer can fix their labels. Also list what will be removed (closed and community available, with titles). This step is complete when the user has approved or adjusted the positions. Do not change the project before then.
 4. Write the approved plan to a file in the scratchpad directory:
 
 ```json
@@ -29,8 +29,11 @@ Closed issues are not removed by the project: its "Item closed" workflow only up
 
 The priority label picks the section; within a section, rank by how much a hiker would notice the issue.
 
-- Most users rely on Navigation, Map, Paths, Beacons and Offline Maps. Astronomy, Packing Lists and Field Guide are used heavily but are not the primary use. Weather, Tides, Climate, Signal Finder and the rest are secondary; ballistics, white noise and similar are lowest.
-- Safety-relevant navigation behavior (alerts, getting back, knowing where you are) ranks above polish.
-- The project is roughly ordered: work that completes the primary tools, then other strong-value work, then well-scoped smaller improvements by hiker value, then research, weather modeling, plugins, refactors, AR and non-hiking tools at the bottom. Read the titles around a candidate position within the issue's priority section in `order` and place the issue next to issues of similar value.
+- Tiers of tools based on use/importance:
+   - Primary: Navigation, Map, Beacons, Paths, Offline Maps
+   - Secondary: Flashlight, Astronomy, Weather, Pedometer, Signal Finder, Survival Guide, User Guide, Field Guide, Packing Lists
+   - Tertiary: All other tools
+- Safety-relevant behavior (alerts, getting back, knowing where you are) ranks above polish.
+- The project is roughly ordered: work that completes the primary tools, then other strong-value work, then well-scoped smaller improvements by hiker value, then research, plugins, refactors, and non-hiking tools at the bottom. Read the titles around a candidate position within the issue's priority section in `order` and place the issue next to issues of similar value.
 - Research spikes, refactors and technical debt rank low unless they unblock a higher-ranked issue; place those just below the issue they unblock.
 - When a new issue overlaps an existing one (duplicate or same work), anchor it directly after that issue and say so in the reason.
