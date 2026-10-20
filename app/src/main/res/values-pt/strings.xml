@@ -552,7 +552,6 @@
     <string name="import_map">Importar mapa</string>
     <string name="pref_cell_signal_refresh_cache_summary">Força o carregamento dos últimos níveis de sinal de antena do telemóvel</string>
     <string name="pref_cell_signal_refresh_cache_title">Atualizar a cache do sinal de antena do telemóvel</string>
-    <string name="pref_navigation_lock_screen_presence_title">Mostrar no ecrã de bloqueio durante a navegação</string>
     <string name="map_perspective_instructions">Endireitar o mapa</string>
     <string name="moved_to">Movido para %s</string>
     <string name="move">Mover</string>
@@ -1510,7 +1509,6 @@
     <string name="widget_theme_black_text">Texto preto</string>
     <string name="widget_theme_white_text">Texto branco</string>
     <string name="default_widget_theme">Tema de widget padrão</string>
-    <string name="cancel_navigation_question">Cancelar navegação?</string>
     <string name="elevation_value">Altitude: %s</string>
     <string name="show_pressure_forecast">Mostrar previsão de pressão no gráfico</string>
     <string name="moa_amount">%s MOA</string>

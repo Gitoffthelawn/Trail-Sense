@@ -17,14 +17,9 @@ class PathRoute(
     private val clock: Clock = Clock.systemUTC()
 ) {
     private val coordinates = pathPoints.map { it.coordinate }
-
-    init {
-        require(coordinates.isNotEmpty())
-    }
-
     private val hikingService = HikingService()
     private val geometry = RouteGeometry(coordinates)
-    val length = geometry.length
+    private val length = geometry.length
     private val pathId = pathPoints.first().pathId
     private val cumulativeElevationLossGain = hikingService.getCumulativeElevationLossGain(pathPoints)
     private val cumulativeElevationLoss = cumulativeElevationLossGain.first
@@ -39,9 +34,13 @@ class PathRoute(
     private val state = NavigationState()
 
     @Synchronized
-    fun restoreProgress(progress: Float, location: Coordinate) {
-        state.restore(progress, location)
+    fun restorePosition(distanceAlong: Float, location: Coordinate) {
+        state.restore(distanceAlong.coerceIn(0f, length), location)
     }
+
+    /** The guidance from the latest [navigate], which must have been called at least once. */
+    val guidance: PathGuidance
+        @Synchronized get() = checkNotNull(state.guidance) { "The route has not been navigated" }
 
     @Synchronized
     fun navigate(location: Coordinate, accuracy: Distance?): PathGuidance {
@@ -51,11 +50,11 @@ class PathRoute(
         }
         val currentTime = Instant.now(clock)
         val tolerance = (accuracy?.meters()?.value ?: 0f)
-            .coerceIn(CURRENT_LOCATION_MIN_TOLERANCE_METERS, CURRENT_LOCATION_MAX_TOLERANCE_METERS)
+            .coerceIn(ROUTING_SAME_PLACE_TOLERANCE_METERS, CURRENT_LOCATION_MAX_TOLERANCE_METERS)
         val match = matchLocation(location, tolerance, currentTime)
         val guidance = getGuidance(location, match, tolerance)
         state.time = currentTime
-        state.progress = guidance.progress
+        state.distanceAlong = guidance.distanceAlong
         state.location = location
         state.guidance = guidance
         return guidance
@@ -72,7 +71,7 @@ class PathRoute(
         val currentElevation = PathInterpolationUtils.elevationAt(pathPoints, match)
         val projected = geometry.coordinateOf(match)
         return PathGuidance(
-            target = getTarget(location, match, projected),
+            target = getTarget(match, projected),
             remainingDistance = remainingDistance,
             offRouteDistance = Distance.meters(match.offset),
             arrived = arrived,
@@ -81,12 +80,12 @@ class PathRoute(
                 if (match.offset > OFF_ROUTE_PROJECTION_INCLUSION_DISTANCE_METERS) {
                     add(PathPoint(-2, pathId, projected, currentElevation))
                 }
-                addAll(pathPoints.subList(min(match.segment + 1, coordinates.lastIndex), pathPoints.size))
+                addAll(pathPoints.subList(match.segment + 1, pathPoints.size))
             },
             remainingElevationGain = remainingElevationGain,
             remainingElevationLoss = remainingElevationLoss,
-            progress = getProgress(match.distanceAlong, arrived),
-            effortProgress = getEffortProgress(match, arrived),
+            distanceAlong = if (arrived) length else match.distanceAlong,
+            progress = getProgress(match, arrived),
         )
     }
 
@@ -95,60 +94,30 @@ class PathRoute(
                 Distance.meters(cumulativeElevationGain.last() - cumulativeElevationGain.at(currentPoint))
     }
 
-    private fun getProgress(distanceAlong: Float, arrived: Boolean): Float = when {
-        arrived -> 1f
-        length > 0f -> (distanceAlong / length).coerceIn(0f, 1f)
-        else -> 0f
-    }
-
-    private fun getEffortProgress(currentPoint: Snap, arrived: Boolean): Float = when {
+    private fun getProgress(currentPoint: Snap, arrived: Boolean): Float = when {
         arrived -> 1f
         length > 0f -> (cumulativeScarfsDistance.at(currentPoint) / cumulativeScarfsDistance.last()).coerceIn(0f, 1f)
         else -> 0f
     }
 
-    private fun FloatArray.at(snap: Snap): Float {
-        if (snap.segment >= coordinates.lastIndex) return last()
-        return Interpolation.lerp(snap.percentAlongSegment, this[snap.segment], this[snap.segment + 1])
-    }
+    private fun FloatArray.at(snap: Snap): Float =
+        Interpolation.lerp(snap.percentAlongSegment, this[snap.segment], this[snap.segment + 1])
 
     private fun hasArrived(location: Coordinate, distanceAlong: Float, tolerance: Float): Boolean {
         val radius = if (state.guidance?.arrived == true) tolerance * ARRIVED_RADIUS_MULTIPLIER else tolerance
         return length - distanceAlong <= radius && location.distanceTo(coordinates.last()) <= radius
     }
 
-    private fun getTarget(location: Coordinate, current: Snap, projected: Coordinate): Coordinate {
-        // If the user is off route, steer toward the projected point on the route instead of a corner
+    private fun getTarget(current: Snap, projected: Coordinate): Coordinate {
         if (current.offset > OFF_ROUTE_TARGET_DISTANCE_METERS) {
             return projected
         }
-
-        // Reset the last reached corner if the user has walked back far enough
-        if (current.distanceAlong < state.lastReachedCorner - TARGET_CORNER_RESET_METERS) {
-            state.lastReachedCorner = Float.NEGATIVE_INFINITY
-        }
-
-        // Look ahead to the next corner on the route, but not too far ahead
-        val lookahead = current.distanceAlong + max(TARGET_LOOKAHEAD_METERS, current.offset)
-        for (distance in geometry.cornersBetween(current.distanceAlong, lookahead)) {
-            if (distance > state.lastReachedCorner) {
-                val point = geometry.pointAt(distance)
-                // If the user is far enough away from the corner, target it. Otherwise, keep looking for a corner further ahead.
-                if (location.distanceTo(point) > TARGET_CORNER_REACHED_METERS) {
-                    return point
-                }
-                // The user has reached this corner
-                state.lastReachedCorner = distance
-            }
-        }
-
-        // If there are no corners ahead, target the point at the lookahead distance
-        return geometry.pointAt(lookahead)
+        return geometry.pointAt(current.distanceAlong + max(TARGET_LOOKAHEAD_METERS, current.offset))
     }
 
     private fun matchLocation(location: Coordinate, tolerance: Float, currentTime: Instant): Snap {
         val movement = state.location?.distanceTo(location) ?: 0f
-        val lastDistance = state.progress * length
+        val lastDistance = state.distanceAlong
         val secondsSinceLastUpdate = state.time?.let { Duration.between(it, currentTime).toMillis() / 1000f } ?: 0f
         // How far the user could have hiked since the last update (likely more than actual)
         val possibleHikingDistance = MAX_HIKING_SPEED_METERS_PER_SECOND * secondsSinceLastUpdate
@@ -198,27 +167,22 @@ class PathRoute(
     }
 
     private data class NavigationState(
-        var progress: Float = 0f,
+        var distanceAlong: Float = 0f,
         var location: Coordinate? = null,
         var time: Instant? = null,
         var guidance: PathGuidance? = null,
-        var pendingRejoin: Float? = null,
-        var lastReachedCorner: Float = Float.NEGATIVE_INFINITY
+        var pendingRejoin: Float? = null
     ) {
-        fun restore(progress: Float, location: Coordinate) {
-            this.progress = progress.coerceIn(0f, 1f)
+        fun restore(distanceAlong: Float, location: Coordinate) {
+            this.distanceAlong = distanceAlong
             this.location = location
             this.time = null
             this.guidance = null
             this.pendingRejoin = null
-            this.lastReachedCorner = Float.NEGATIVE_INFINITY
         }
     }
 
     private companion object {
-        // The minimum tolerance for using the current location for matching/arrival
-        private const val CURRENT_LOCATION_MIN_TOLERANCE_METERS = 15f
-
         // The maximum tolerance for using the current location for matching/arrival
         private const val CURRENT_LOCATION_MAX_TOLERANCE_METERS = 75f
 
@@ -236,12 +200,6 @@ class PathRoute(
 
         // How far ahead the user should look for a target point
         private const val TARGET_LOOKAHEAD_METERS = 25f
-
-        // How far away the user must be from a corner before it is considered reached
-        private const val TARGET_CORNER_REACHED_METERS = 8f
-
-        // How far back the user must walk before the last reached corner is reset
-        private const val TARGET_CORNER_RESET_METERS = 15f
 
         // How far off route before the projected point becomes the target
         private const val OFF_ROUTE_TARGET_DISTANCE_METERS = 30f

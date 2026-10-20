@@ -534,7 +534,6 @@
     <string name="moved_to">Movido a %s</string>
     <string name="preview">Vista previa</string>
     <string name="map_perspective_instructions">Amosar o contorno do mapa</string>
-    <string name="pref_navigation_lock_screen_presence_title">Amosar na pantalla de bloqueo mentres se navega</string>
     <string name="pref_navigation_lock_screen_when_open_title">Amosar na pantalla de bloqueo cando estea aberto</string>
     <string name="pref_cell_signal_refresh_cache_title">Actualizar a caché de sinal</string>
     <string name="pref_cell_signal_refresh_cache_summary">Forza a carga das últimas intensidades de sinal</string>
@@ -1382,7 +1381,6 @@
     <string name="widget_theme_black_text">Texto negro</string>
     <string name="widget_theme_white_text">Texto branco</string>
     <string name="default_widget_theme">Tema predeterminado do widget</string>
-    <string name="cancel_navigation_question">Cancelar a navegación?</string>
     <string name="elevation_value">Elevación: %s</string>
     <string name="show_pressure_forecast">Amosar a previsión de presión no gráfico</string>
     <string name="moa_amount">%s MDA</string>

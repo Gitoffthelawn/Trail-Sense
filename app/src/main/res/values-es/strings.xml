@@ -560,7 +560,6 @@
     <string name="moved_to">Movido a %s</string>
     <string name="preview">Vista Previa</string>
     <string name="map_perspective_instructions">Delinear el mapa</string>
-    <string name="pref_navigation_lock_screen_presence_title">Mostrar en pantalla de bloqueo mientras navegas</string>
     <string name="pref_cell_signal_refresh_cache_title">Actualizar caché de señal</string>
     <string name="pref_backtrack_history_days_title">Historial de Retroceder</string>
     <plurals name="number_days">
@@ -1408,7 +1407,6 @@
     <string name="widget_theme_white_text">Texto blanco</string>
     <string name="default_widget_theme">Tema predeterminado del widget</string>
     <string name="screen_timeout">Tiempo hasta apagar la pantalla</string>
-    <string name="cancel_navigation_question">¿Cancelar navegación?</string>
     <string name="elevation_value">Elevación: %s</string>
     <string name="show_pressure_forecast">Mostrar previsión de presión en gráfico</string>
     <string name="moa_amount">%s \' de ángulo</string>

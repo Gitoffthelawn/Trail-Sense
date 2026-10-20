@@ -605,7 +605,6 @@
     <string name="high">高</string>
     <string name="pref_daily_weather_time_title">每天天氣時間</string>
     <string name="color">顏色</string>
-    <string name="pref_navigation_lock_screen_presence_title">導航時在鎖定螢幕上顯示</string>
     <string name="pref_experimental_metal_direction_title">顯示金屬方向</string>
     <string name="us_pints">美制品脫</string>
     <string name="us_quarts">美制夸脫</string>
@@ -1387,7 +1386,6 @@
     <string name="theme_transparent_type">透明（%s）</string>
     <string name="widget_theme_black_text">黑色文字</string>
     <string name="widget_theme_white_text">白色文字</string>
-    <string name="cancel_navigation_question">取消導航？</string>
     <string name="elevation_value">海拔：%s</string>
     <string name="moa_amount">%s 角分</string>
     <string name="default_widget_theme">預設小工具主題</string>

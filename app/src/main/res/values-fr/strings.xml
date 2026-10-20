@@ -601,7 +601,6 @@
     <string name="meteor_shower">Pluie de météores</string>
     <string name="kilograms">Kilogrammes</string>
     <string name="weight">Masse</string>
-    <string name="pref_navigation_lock_screen_presence_title">Afficher sur l’écran de verrouillage lors de la navigation</string>
     <string name="base_elevation">Altitude de base</string>
     <string name="ounces_weight_format">%s oz</string>
     <string name="no_packing_lists">Pas de listes</string>
@@ -1484,7 +1483,6 @@
     <string name="widget_theme_black_text">Texte noir</string>
     <string name="widget_theme_white_text">Texte blanc</string>
     <string name="default_widget_theme">Thème par défaut du widget</string>
-    <string name="cancel_navigation_question">Annuler la navigation ?</string>
     <string name="elevation_value">Altitude : %s</string>
     <string name="show_pressure_forecast">Afficher les prévisions de pression sur la carte</string>
     <string name="moa_amount">%s MOA</string>
