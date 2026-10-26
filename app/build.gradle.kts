@@ -104,6 +104,7 @@ android {
     }
     testOptions {
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
+        animationsDisabled = true
         unitTests.all {
             it.useJUnitPlatform()
         }
@@ -178,7 +179,6 @@ dependencies {
     // Andromeda
     implementation(libs.andromeda.core)
     implementation(libs.andromeda.fragments)
-    implementation(libs.andromeda.forms)
     implementation(libs.andromeda.csv)
     implementation(libs.andromeda.background)
     implementation(libs.andromeda.camera)
@@ -196,19 +196,15 @@ dependencies {
     implementation(libs.andromeda.list)
     implementation(libs.andromeda.qr)
     implementation(libs.andromeda.markdown)
-    implementation(libs.andromeda.camera)
     implementation(libs.andromeda.clipboard)
     implementation(libs.andromeda.haptics)
     implementation(libs.andromeda.bitmaps)
     implementation(libs.andromeda.torch)
     implementation(libs.andromeda.battery)
-    implementation(libs.andromeda.compression)
     implementation(libs.andromeda.pdf)
     implementation(libs.andromeda.exceptions)
     implementation(libs.andromeda.print)
-    implementation(libs.andromeda.list)
     implementation(libs.andromeda.views)
-    implementation(libs.andromeda.xml)
     implementation(libs.andromeda.json)
     implementation(libs.andromeda.widgets)
     implementation(libs.andromeda.ipc)
