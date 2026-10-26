@@ -67,8 +67,6 @@
     <ID>ForbiddenComment:AugmentedRealityView.kt:AugmentedRealityView$// TODO: Notify location change</ID>
     <ID>ForbiddenComment:AugmentedRealityView.kt:AugmentedRealityView$// TODO: Should the onFocus method just return a string?</ID>
     <ID>ForbiddenComment:AugmentedRealityView.kt:AugmentedRealityView$// TODO: This needs a parent view that has the camera, this, and any buttons (like the freeform button)</ID>
-    <ID>ForbiddenComment:AutoSunCalibrator.kt:AutoSunCalibrator$// TODO: If the sun and actual are too far apart, return null</ID>
-    <ID>ForbiddenComment:AutoSunCalibrator.kt:AutoSunCalibrator$// TODO: This doesn't factor in the inclination of the device or declination (this value should always be with declination applied)</ID>
     <ID>ForbiddenComment:Automations.kt:Automations$// TODO: Load these from the DB</ID>
     <ID>ForbiddenComment:Automations.kt:Automations$// TODO: Should there be a way to unregister? Maybe only register when something is listening? When to cancel queue?</ID>
     <ID>ForbiddenComment:BacktrackSpeedometer.kt:BacktrackSpeedometer$// TODO: Listen for path changes for backtrack ID</ID>
@@ -86,7 +84,6 @@
     <ID>ForbiddenComment:CanvasObject.kt:// TODO: Use this on the MapView as well - maybe extract to Andromeda</ID>
     <ID>ForbiddenComment:CellTowerModel.kt:CellTowerModel$// TODO: Load the whole region of the image and get the towers from it</ID>
     <ID>ForbiddenComment:ClimateFragment.kt:ClimateFragment$// TODO: Break these down (ex. borreal, tiaga)</ID>
-    <ID>ForbiddenComment:ClimateFragment.kt:ClimateFragment$// TODO: Eventually add more</ID>
     <ID>ForbiddenComment:ClimateFragment.kt:ClimateFragment$// TODO: List out dangers</ID>
     <ID>ForbiddenComment:ClinometerFragment.kt:ClinometerFragment$// TODO: This should just be clinometer.angle</ID>
     <ID>ForbiddenComment:CloudRepo.kt:CloudRepo$// TODO: Only do this if there was a change</ID>
@@ -105,7 +102,6 @@
     <ID>ForbiddenComment:FeatureRenderer.kt:FeatureRenderer$// TODO: Cache this</ID>
     <ID>ForbiddenComment:FieldGuidePageFragment.kt:FieldGuidePageFragment$// TODO: Handle tag click</ID>
     <ID>ForbiddenComment:FileSubsystem.kt:FileSubsystem$// TODO: Handle maxSize</ID>
-    <ID>ForbiddenComment:Forecast.kt:DailyWeather$// TODO: Is this needed or can Trail Sense figure this out from the hourly data?</ID>
     <ID>ForbiddenComment:FormatService.kt:FormatService$// TODO: Rewrite this</ID>
     <ID>ForbiddenComment:FormatService.kt:FormatService$// TODO: Secondary sort by size</ID>
     <ID>ForbiddenComment:FragmentBallisticsCalculator.kt:FragmentBallisticsCalculator$// TODO: Determine normal value for metric</ID>
@@ -133,7 +129,6 @@
     <ID>ForbiddenComment:GeographicImageSource.kt:GeographicImageSource$// TODO: Extract this and make the size configurable (maybe make it part of the region loader?)</ID>
     <ID>ForbiddenComment:GeographicImageSource.kt:GeographicImageSource$// TODO: Move the interpolation out of this class?</ID>
     <ID>ForbiddenComment:GeographicImageUtils.kt:GeographicImageUtils$// TODO: Redo this</ID>
-    <ID>ForbiddenComment:GrayscaleMomentFinder.kt:GrayscaleMomentFinder$// TODO: Count the number of non-zero pixels (or use moment values to determine the shape/size)</ID>
     <ID>ForbiddenComment:GroupableSelectView.kt:GroupableSelectView$// TODO: Don't override anything, just intercept the click action to open folders (let the caller decide what to do on click)</ID>
     <ID>ForbiddenComment:HumidityWeatherField.kt:HumidityWeatherField$// TODO: Build chart into this</ID>
     <ID>ForbiddenComment:ICompassView.kt:ICompassView$// TODO: Replace mappable reference point with a compass marker</ID>
@@ -195,8 +190,6 @@
     <ID>ForbiddenComment:TemperatureWeatherField.kt:TemperatureWeatherField$// TODO: Build chart into this</ID>
     <ID>ForbiddenComment:ThermometerSettingsFragment.kt:ThermometerSettingsFragment$// TODO: No need for multiple units, use a UnitPreference</ID>
     <ID>ForbiddenComment:TideGeoJsonSource.kt:TideGeoJsonSource$// TODO: Limit max locations?</ID>
-    <ID>ForbiddenComment:TideImportService.kt:TideImportService$// TODO: Add support for CSV</ID>
-    <ID>ForbiddenComment:TideImportService.kt:TideImportService$// TODO: Add support for JSON</ID>
     <ID>ForbiddenComment:TideTableRepo.kt:TideTableRepo$// TODO: Only delete the tides if they changed</ID>
     <ID>ForbiddenComment:TideTableWaterLevelCalculator.kt:TideTableWaterLevelCalculator$// TODO: This should use the same gap filling logic as above</ID>
     <ID>ForbiddenComment:TileLoader.kt:TileLoader$// TODO: This should be handled by a higher level component</ID>
@@ -272,7 +265,6 @@
     <ID>SwallowedException:PreferenceMigrator.kt:PreferenceMigrator.Companion$e: Exception</ID>
     <ID>SwallowedException:RestoreCommand.kt:RestoreCommand$e: BackupService.InvalidBackupException</ID>
     <ID>SwallowedException:RestoreCommand.kt:RestoreCommand$e: BackupService.NewerBackupException</ID>
-    <ID>SwallowedException:SpeciesImportService.kt:SpeciesImportService$e: Exception</ID>
     <ID>SwallowedException:WhiteNoiseService.kt:WhiteNoiseService.Companion$e: Exception</ID>
     <ID>TooGenericExceptionCaught:AndromedaExtensions.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:CachedTileCleanupWorker.kt:CachedTileCleanupWorker$e: Exception</ID>
@@ -296,7 +288,6 @@
     <ID>TooGenericExceptionCaught:QuickActionWhistle.kt:QuickActionWhistle$e: Exception</ID>
     <ID>TooGenericExceptionCaught:ScanQRFragment.kt:ScanQRFragment$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SightingCompassView.kt:SightingCompassView$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:SpeciesImportService.kt:SpeciesImportService$e: Exception</ID>
     <ID>TooGenericExceptionCaught:TemperatureServiceExtensions.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:ToolWhistleFragment.kt:ToolWhistleFragment$e: Exception</ID>
     <ID>TooGenericExceptionCaught:TrailSenseTextView.kt:TrailSenseTextView$e: Exception</ID>
@@ -312,7 +303,6 @@
     <ID>TooManyFunctions:FormatService.kt:FormatService</ID>
     <ID>TooManyFunctions:GeoJsonExtensions.kt:com.kylecorry.trail_sense.shared.extensions.GeoJsonExtensions.kt</ID>
     <ID>TooManyFunctions:Hooks.kt:com.kylecorry.trail_sense.shared.extensions.Hooks.kt</ID>
-    <ID>TooManyFunctions:IBeaconRepo.kt:IBeaconRepo</ID>
     <ID>TooManyFunctions:IPackRepo.kt:IPackRepo</ID>
     <ID>TooManyFunctions:IPathService.kt:IPathService : ICleanable</ID>
     <ID>TooManyFunctions:IWaypointRepo.kt:IWaypointRepo</ID>
