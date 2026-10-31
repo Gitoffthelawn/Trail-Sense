@@ -203,7 +203,7 @@ class SmokeTest {
 
     private fun smokeTestUserGuide() {
         click("Flashlight")
-        hasText("The Flashlight tool")
+        hasText("Use the Flashlight tool")
         back()
     }
 
@@ -217,7 +217,7 @@ class SmokeTest {
         click("Navigate")
         optional { clickOk() }
         hasText("Test beacon")
-        click({ viewWithResourceId("$packageName:id/toolbar_right_button", index = 1) })
+        click({ viewWithResourceId("$packageName:id/navigation_cancel") })
         back()
         back()
         back()
