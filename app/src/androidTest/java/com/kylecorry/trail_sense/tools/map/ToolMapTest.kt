@@ -8,6 +8,7 @@ import com.kylecorry.trail_sense.shared.views.Toolbar
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.click
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.delay
+import com.kylecorry.trail_sense.test_utils.AutomationLibrary.isVisible
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.clickOk
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.hasText
 import com.kylecorry.trail_sense.test_utils.AutomationLibrary.isChecked
@@ -257,7 +258,7 @@ class ToolMapTest : ToolTestBase(Tools.MAP, location) {
 
         hasText(R.id.navigation_sheet_title, "Camp")
         // 0.0015 degrees of latitude is 167 m
-        hasText(R.id.navigation_primary_value, Regex("54[78] ft"))
+        hasText(R.id.navigation_primary_stat, Regex("54[78] ft"), childId = R.id.stat_value)
     }
 
     @Test
@@ -326,6 +327,7 @@ class ToolMapTest : ToolTestBase(Tools.MAP, location) {
         clickOk()
         click(R.id.menu_btn)
         click("Create path")
+        isVisible(R.id.undo_btn)
     }
 
     private fun tapAt(coordinate: Coordinate) {
