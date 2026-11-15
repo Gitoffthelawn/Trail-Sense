@@ -1,0 +1,35 @@
+package com.kylecorry.trail_sense.shared.bitmap
+
+import android.content.Context
+import android.graphics.Bitmap
+import androidx.annotation.DrawableRes
+import androidx.core.graphics.drawable.toBitmap
+import com.kylecorry.andromeda.core.system.Resources
+
+class BitmapLoader(private val context: Context) {
+
+    private val icons = mutableMapOf<Int, Bitmap>()
+
+    fun load(@DrawableRes id: Int, size: Int): Bitmap {
+        val bitmap = if (icons.containsKey(id)) {
+            icons[id]
+        } else {
+            val drawable = Resources.drawable(context, id)
+            val bm = drawable?.toBitmap(size, size)
+            icons[id] = bm!!
+            icons[id]
+        }
+        return bitmap!!
+    }
+
+    fun unload(@DrawableRes id: Int) {
+        if (icons.containsKey(id)) {
+            icons.remove(id)?.recycle()
+        }
+    }
+
+    fun clear() {
+        icons.clear()
+    }
+
+}

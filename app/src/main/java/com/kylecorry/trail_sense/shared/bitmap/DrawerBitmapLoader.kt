@@ -1,0 +1,31 @@
+package com.kylecorry.trail_sense.shared.bitmap
+
+import android.graphics.Bitmap
+import androidx.annotation.DrawableRes
+import com.kylecorry.andromeda.canvas.ICanvasDrawer
+
+class DrawerBitmapLoader(private val drawer: ICanvasDrawer) {
+
+    private val icons = mutableMapOf<Int, Bitmap>()
+    private val lock = Any()
+
+    fun load(@DrawableRes id: Int, size: Int): Bitmap {
+        return synchronized(lock) {
+            val bitmap = if (icons.containsKey(id)) {
+                icons[id]
+            } else {
+                val bm = drawer.loadImage(id, size, size)
+                icons[id] = bm
+                icons[id]
+            }
+            bitmap!!
+        }
+    }
+
+    fun clear() {
+        synchronized(lock) {
+            icons.clear()
+        }
+    }
+
+}

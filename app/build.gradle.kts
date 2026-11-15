@@ -20,6 +20,7 @@ android {
         versionName = "8.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
+        testInstrumentationRunnerArguments["useTestStorageService"] = "true"
     }
     signingConfigs {
         create("nightly") {
@@ -42,6 +43,8 @@ android {
     androidResources {
         // Support for auto-generated locales for per-app language settings
         generateLocaleConfig = true
+        // Geo point files are already internally compressed, and are read at any offset (which needs them uncompressed)
+        noCompress += "tsgeo"
     }
     buildFeatures {
         // Support for view binding
@@ -226,6 +229,8 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.androidx.test.core)
     androidTestUtil(libs.androidx.test.orchestrator)
+    androidTestUtil(libs.androidx.test.services)
+    androidTestImplementation(libs.androidx.test.storage)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.rules)
     androidTestImplementation(libs.androidx.test.uiautomator)

@@ -33,8 +33,8 @@ class PathRoute(
     private val state = NavigationState()
 
     @Synchronized
-    fun restorePosition(distanceAlong: Float, location: Coordinate) {
-        state.restore(distanceAlong.coerceIn(0f, length), location)
+    fun restorePosition(distanceAlong: Distance, location: Coordinate) {
+        state.restore(distanceAlong.meters().value.coerceIn(0f, length), location)
     }
 
     /** The guidance from the latest [navigate], which must have been called at least once. */
@@ -74,13 +74,15 @@ class PathRoute(
             remainingDistance = remainingDistance,
             offRouteDistance = Distance.meters(match.offset),
             arrived = arrived,
-            remainingRoute = buildList {
-                add(PathPoint(-1, pathId, location, currentElevation))
-                if (match.offset > OFF_ROUTE_PROJECTION_INCLUSION_DISTANCE_METERS) {
-                    add(PathPoint(-2, pathId, projected, currentElevation))
-                }
-                addAll(pathPoints.subList(match.segment + 1, pathPoints.size))
-            },
+            remainingRoute = RemainingRoute(
+                buildList {
+                    add(PathPoint(-1, pathId, location, currentElevation))
+                    if (match.offset > OFF_ROUTE_PROJECTION_INCLUSION_DISTANCE_METERS) {
+                        add(PathPoint(-2, pathId, projected, currentElevation))
+                    }
+                },
+                pathPoints.subList(match.segment + 1, pathPoints.size)
+            ),
             remainingElevationGain = remainingElevationGain,
             remainingElevationLoss = remainingElevationLoss,
             distanceAlong = Distance.meters(if (arrived) length else match.distanceAlong),
@@ -125,13 +127,41 @@ class PathRoute(
         val movementDistance = lastDistance + movement
         // The likely maximum for how far the user could have moved along the route since the last update
         val possibleTravelDistance = max(movement + tolerance, possibleHikingDistance)
-        val nearby = geometry.getOptimalLocationMatch(
+        val closest = geometry.getOptimalLocationMatch(
             location,
             lastDistance - possibleTravelDistance,
             lastDistance + possibleTravelDistance,
             movementDistance
         )
+        val nearby = preferLegAhead(location, closest, lastDistance, possibleTravelDistance, movementDistance)
         return rejoinRoute(location, nearby, lastDistance, movementDistance, movement, tolerance)
+    }
+
+    /**
+     * Overlapping legs (ex. after the turnaround of an out and back) are indistinguishable within
+     * the GPS error, so a match behind the user may really be on the leg ahead. The user is following
+     * the route, so the leg ahead is used when it is about as close.
+     */
+    private fun preferLegAhead(
+        location: Coordinate,
+        closest: Snap,
+        lastDistance: Float,
+        possibleTravelDistance: Float,
+        estimatedDistance: Float
+    ): Snap {
+        if (closest.distanceAlong >= lastDistance) {
+            return closest
+        }
+        val ahead = geometry.getOptimalLocationMatch(
+            location,
+            lastDistance,
+            lastDistance + possibleTravelDistance,
+            estimatedDistance
+        )
+        // When there is no leg ahead, the closest point ahead is the last position itself
+        val isLegAhead = ahead.distanceAlong > lastDistance + MIN_LEG_AHEAD_PROGRESS_METERS
+        val isAboutAsClose = ahead.offset <= closest.offset + ROUTING_SAME_PLACE_TOLERANCE_METERS
+        return if (isLegAhead && isAboutAsClose) ahead else closest
     }
 
     private fun rejoinRoute(
@@ -166,6 +196,17 @@ class PathRoute(
         return nearby
     }
 
+    private class RemainingRoute(
+        private val start: List<PathPoint>,
+        private val rest: List<PathPoint>
+    ) : AbstractList<PathPoint>() {
+        override val size = start.size + rest.size
+
+        override fun get(index: Int): PathPoint {
+            return if (index < start.size) start[index] else rest[index - start.size]
+        }
+    }
+
     private data class NavigationState(
         var distanceAlong: Float = 0f,
         var location: Coordinate? = null,
@@ -197,6 +238,9 @@ class PathRoute(
 
         // Speed used to estimate how much of the path the user could have hiked for location matching
         private const val MAX_HIKING_SPEED_METERS_PER_SECOND = 2f
+
+        // How far past the last position a match must be to be on a leg ahead rather than at the last position
+        private const val MIN_LEG_AHEAD_PROGRESS_METERS = 1f
 
         // How far ahead the user should look for a target point
         private const val TARGET_LOOKAHEAD_METERS = 25f

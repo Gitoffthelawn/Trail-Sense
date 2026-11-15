@@ -13,6 +13,7 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.kylecorry.andromeda.canvas.CanvasView
 import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.trail_sense.shared.UserPreferences
+import com.kylecorry.trail_sense.shared.bitmap.BitmapLoader
 import com.kylecorry.trail_sense.tools.navigation.ui.layers.compass.ICompassLayer
 import com.kylecorry.trail_sense.tools.navigation.ui.layers.compass.ICompassView
 
@@ -99,5 +100,9 @@ abstract class BaseCompassView : CanvasView, ICompassView {
     override fun setCompassLayers(layers: List<ICompassLayer>) {
         compassLayers.clear()
         compassLayers.addAll(layers)
+    }
+
+    override fun redraw() {
+        invalidate()
     }
 }

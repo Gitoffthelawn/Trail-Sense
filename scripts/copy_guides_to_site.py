@@ -1,6 +1,8 @@
+import datetime
 import os
 import shutil
 import re
+import subprocess
 
 root = os.path.dirname(os.path.realpath(__file__)).replace('\\', '/') + '/..'
 
@@ -91,10 +93,12 @@ for filename in os.listdir(root + "/guides/en-US"):
         with open(destination, 'r', encoding='utf8') as f:
                 content = f.read()
         chapter_number = chapters.index(filename) + 1
-        title = str(chapter_number) + " - " + capitalize_title(destination.split('/')[-1].split('.')[0].replace('guide_survival_chapter', '').replace('_', ' ')).strip()
+        chapter_name = capitalize_title(destination.split('/')[-1].split('.')[0].replace('guide_survival_chapter', '').replace('_', ' ')).strip()
+        title = str(chapter_number) + " - " + chapter_name
         with open(destination, 'w') as f:
             new_content = f"""---
 title: "{title}"
+page_title: "{chapter_name} - Survival Guide"
 ---
 
 {process_markdown_content(content)}
@@ -102,3 +106,51 @@ title: "{title}"
             copy_images(content, root + "/site/src/assets/images")
 
             f.write(new_content)
+
+def get_release_date(version):
+    """Returns the date (YYYY-MM-DD) the version was tagged, or today if it is about to be released."""
+    result = subprocess.run(
+        ["git", "-C", root, "log", "-1", "--format=%cs", "refs/tags/" + version],
+        capture_output=True,
+        text=True,
+    )
+    date = result.stdout.strip()
+    return date if result.returncode == 0 and date else datetime.date.today().isoformat()
+
+# Copy release notes (unreleased notes are not published)
+release_notes_source = root + "/release-notes"
+release_notes_destination = root + "/site/src/release-notes"
+release_notes_images_destination = root + "/site/src/assets/images/release-notes"
+
+for filename in os.listdir(release_notes_destination):
+    if filename.endswith(".md"):
+        os.remove(release_notes_destination + "/" + filename)
+shutil.rmtree(release_notes_images_destination, ignore_errors=True)
+
+for filename in os.listdir(release_notes_source):
+    version = filename[:-3]
+    if not re.fullmatch(r'\d+\.\d+\.\d+', version) or not filename.endswith(".md"):
+        continue
+
+    with open(release_notes_source + "/" + filename, 'r', encoding='utf8') as f:
+        content = f.read()
+
+    content = re.sub(r'\A# .*\n+', '', content)
+    major, minor, patch = (int(part) for part in version.split('.'))
+    content = re.sub(r'\]\(\./(\d+\.\d+\.\d+)\.md\)', r'](/release-notes/\1/)', content)
+    content = re.sub(r'(src=|\]\()"?images/', lambda m: m.group(0).replace('images/', '/assets/images/release-notes/'), content)
+
+    with open(release_notes_destination + "/" + filename, 'w', encoding='utf8') as f:
+        f.write(f"""---
+title: "{version}"
+page_title: "{version} Release Notes"
+date: {get_release_date(version)}
+order: {major * 1000000 + minor * 1000 + patch}
+---
+
+{process_markdown_content(content)}
+""")
+
+    images_source = release_notes_source + "/images/" + version
+    if os.path.isdir(images_source):
+        shutil.copytree(images_source, release_notes_images_destination + "/" + version)

@@ -24,8 +24,8 @@ import com.kylecorry.trail_sense.tools.tools.infrastructure.Tools
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
-import org.junit.rules.RuleChain
 import org.junit.rules.Timeout
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 open class ToolTestBase(
@@ -33,14 +33,8 @@ open class ToolTestBase(
     private val locationOverride: Coordinate? = null
 ) {
 
-    private val timeoutRule: Timeout = Timeout(5, TimeUnit.MINUTES)
-
-    private val retryRule = RetryTestRule(maxRetryCount = 3)
-
     @get:Rule
-    val retryWithTimeoutRule: RuleChain = RuleChain
-        .outerRule(retryRule)
-        .around(timeoutRule)
+    val timeoutRule: Timeout = Timeout(5, TimeUnit.MINUTES)
 
     @get:Rule
     val grantPermissionRule = TestUtils.allPermissionsGranted()
@@ -55,6 +49,7 @@ open class ToolTestBase(
     protected lateinit var navController: NavController
 
     private var volume: Int = 0
+    private var originalTimeZone: TimeZone? = null
 
     /**
      * Seed the app's data (paths, beacons, readings, etc.) before the tool is opened. Only called
@@ -108,6 +103,9 @@ open class ToolTestBase(
 
             if (locationOverride != null) {
                 TestUtils.setLocationOverride(locationOverride)
+                // Expected times are for the pinned (US eastern) location, regardless of the device's zone
+                originalTimeZone = TimeZone.getDefault()
+                TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"))
             }
 
             seedData()
@@ -160,5 +158,6 @@ open class ToolTestBase(
         if (this::scenario.isInitialized) {
             finishCurrentActivity()
         }
+        originalTimeZone?.let { TimeZone.setDefault(it) }
     }
 }
