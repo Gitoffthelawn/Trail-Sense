@@ -1,8 +1,8 @@
 package com.kylecorry.trail_sense.tools.navigation.ui.layers.compass
 
 import com.kylecorry.sol.units.Coordinate
-import com.kylecorry.trail_sense.tools.navigation.ui.IMappableBearing
-import com.kylecorry.trail_sense.tools.navigation.ui.IMappableReferencePoint
+import com.kylecorry.trail_sense.shared.map_layers.IMappableBearing
+import com.kylecorry.trail_sense.shared.map_layers.IMappableReferencePoint
 
 interface ICompassView {
 
@@ -19,4 +19,6 @@ interface ICompassView {
     fun draw(reference: IMappableReferencePoint, size: Int? = null)
 
     fun draw(bearing: IMappableBearing, stopAt: Coordinate? = null)
+
+    fun redraw()
 }

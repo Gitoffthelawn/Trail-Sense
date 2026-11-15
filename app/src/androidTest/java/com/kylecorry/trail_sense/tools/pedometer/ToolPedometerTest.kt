@@ -22,15 +22,14 @@ import com.kylecorry.trail_sense.test_utils.views.toolbarButton
 import com.kylecorry.trail_sense.tools.pedometer.infrastructure.DistanceAlerter
 import com.kylecorry.trail_sense.tools.pedometer.infrastructure.StepCounterService
 import com.kylecorry.trail_sense.tools.tools.infrastructure.Tools
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class ToolPedometerTest : ToolTestBase(Tools.PEDOMETER) {
 
     @Test
-    fun verifyBasicFunctionality() {
-        if (!Tools.isToolAvailable(context, Tools.PEDOMETER)) {
-            return
-        }
+    fun showsAnEmptyCurrentSession() {
+        assumeTrue(Tools.isToolAvailable(context, Tools.PEDOMETER))
 
         hasText(R.id.pedometer_title, string(R.string.pedometer))
         hasText(R.id.current_session_title, string(R.string.current_session))
@@ -53,6 +52,11 @@ class ToolPedometerTest : ToolTestBase(Tools.PEDOMETER) {
         hasText(R.id.pedometer_average_pace, string(R.string.average_pace))
 
         hasText(R.id.play_bar_title, string(R.string.off))
+    }
+
+    @Test
+    fun canStartAndStopTheStepCounter() {
+        assumeTrue(Tools.isToolAvailable(context, Tools.PEDOMETER))
 
         click(R.id.play_btn)
         hasText(R.id.play_bar_title, string(R.string.on))
@@ -61,6 +65,25 @@ class ToolPedometerTest : ToolTestBase(Tools.PEDOMETER) {
         click(R.id.play_btn)
         doesNotHaveNotification(StepCounterService.NOTIFICATION_ID)
         hasText(R.id.play_bar_title, string(R.string.off))
+
+        verifyQuickAction()
+    }
+
+    @Test
+    fun alertsWhenTheDistanceAlertIsReached() {
+        assumeTrue(Tools.isToolAvailable(context, Tools.PEDOMETER))
+
+        click(toolbarButton(R.id.pedometer_title, Side.Right))
+        input(R.id.amount, "0")
+        clickOk()
+
+        click(R.id.play_btn)
+        hasNotification(DistanceAlerter.NOTIFICATION_ID, title = string(R.string.distance_alert))
+    }
+
+    @Test
+    fun canResetTheSessionAndViewTheHistory() {
+        assumeTrue(Tools.isToolAvailable(context, Tools.PEDOMETER))
 
         click(R.id.reset_btn)
         clickOk()
@@ -73,18 +96,7 @@ class ToolPedometerTest : ToolTestBase(Tools.PEDOMETER) {
             )
         )
 
-        click(toolbarButton(R.id.pedometer_title, Side.Right))
-        input(R.id.amount, "0")
-        clickOk()
-
-        click(R.id.play_btn)
-        hasNotification(DistanceAlerter.NOTIFICATION_ID, title = string(R.string.distance_alert))
-
-        click(R.id.play_btn)
-
         verifyHistory()
-
-        verifyQuickAction()
     }
 
     private fun verifyHistory() {

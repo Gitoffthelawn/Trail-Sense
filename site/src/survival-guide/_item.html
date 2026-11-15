@@ -1,6 +1,29 @@
 {{{includes.header}}}
-<div class="container">
-    <h2>{{ item.title }}</h2>
+<article class="wrap prose-wrap">
+  <p class="breadcrumb"><a href="/survival-guide/">Survival Guide</a></p>
+  <h1 class="page-title">{{ item.title }}</h1>
+  {{#item.toc}}
+  <aside class="toc">
+    <details>
+      <summary>On this page</summary>
+      <ul>
+        {{#sections}}
+        <li><a href="#{{ id }}">{{{ name }}}</a></li>
+        {{/sections}}
+      </ul>
+    </details>
+  </aside>
+  {{/item.toc}}
+  <div class="prose">
     {{{ item.content }}}
-</div>
+  </div>
+  <nav class="chapter-nav" aria-label="Chapters">
+    {{#item.previous}}
+    <a class="btn btn-secondary chapter-previous" href="{{ url }}"><span>Previous</span>{{ title }}</a>
+    {{/item.previous}}
+    {{#item.next}}
+    <a class="btn btn-secondary chapter-next" href="{{ url }}"><span>Next</span>{{ title }}</a>
+    {{/item.next}}
+  </nav>
+</article>
 {{{includes.footer}}}

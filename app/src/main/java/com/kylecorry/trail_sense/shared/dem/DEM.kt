@@ -21,14 +21,18 @@ import com.kylecorry.sol.units.Coordinate
 import com.kylecorry.sol.units.Distance
 import com.kylecorry.trail_sense.main.persistence.AppDatabase
 import com.kylecorry.trail_sense.shared.UserPreferences
+import com.kylecorry.trail_sense.shared.andromeda_temp.ByteRangeReader
+import com.kylecorry.trail_sense.shared.data.AssetByteRangeReader
 import com.kylecorry.trail_sense.shared.data.AssetInputStreamable
 import com.kylecorry.trail_sense.shared.data.EncodedDataImageReader
 import com.kylecorry.trail_sense.shared.data.GeographicImageSource
 import com.kylecorry.trail_sense.shared.data.LocalInputStreamable
 import com.kylecorry.trail_sense.shared.data.SingleImageReader
 import com.kylecorry.trail_sense.shared.extensions.ThreadParallelExecutor
+import com.kylecorry.trail_sense.shared.io.FileSubsystem
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.io.IOException
 
 object DEM {
 
@@ -39,6 +43,7 @@ object DEM {
         val hasWaterMask: Boolean = false
     )
 
+    private const val PEAKS_PATH = "dem/peaks.tsgeo"
     private const val CACHE_DISTANCE = 10f
     private const val CACHE_SIZE = 500
     private var cache =
@@ -47,6 +52,8 @@ object DEM {
     private var tileCache = MemoryLRUCache<String, ElevationBitmap>(16)
     private var cachedSources: List<GeographicImageSource>? = null
     private var cachedHasWaterMask: Boolean = false
+    private var cachedPeaks: PeakOverlay? = null
+    private var hasLoadedPeaks = false
     private var cachedIsExternal: Boolean? = null
     private val sourcesLock = Mutex()
 
@@ -60,7 +67,7 @@ object DEM {
             onIO {
                 tryOrDefault(DEMElevation(0f, null, hasData = false)) {
                     val data = source.read(location, neighbors)
-                    val elevation = data[0]
+                    val elevation = addPeaks(data[0], location)
                     if (hasWaterMask) {
                         val waterType = toElevationType(data.getOrElse(1) { 0f })
                         DEMElevation(elevation, waterType)
@@ -120,6 +127,8 @@ object DEM {
                 val neighbors = getNeighborSources(sources[i], allSources)
                 sources[i].read(latitudes, longitudes, output, neighbors)
             }
+
+            cachedPeaks?.addTo(latitudes, longitudes, output.data, channels)
 
             ElevationBitmap(output, latitudes, longitudes, hasWaterMask)
         }
@@ -270,6 +279,13 @@ object DEM {
             val isExternal = isExternalModel()
             val previousSources = cachedSources
             if (previousSources != null && cachedIsExternal == isExternal) {
+                if (!hasLoadedPeaks) {
+                    loadPeaks(isExternal)
+                    // Elevations from before the peaks could be read are missing them
+                    if (cachedPeaks != null) {
+                        clearElevationCaches()
+                    }
+                }
                 return@onIO previousSources
             }
 
@@ -322,19 +338,51 @@ object DEM {
                 )
             }
             cachedSources = sources
+            loadPeaks(isExternal)
             cachedHasWaterMask = hasWaterMask
             cachedIsExternal = isExternal
             sources
         }
     }
 
+    @Suppress("SwallowedException")
+    private suspend fun loadPeaks(isExternal: Boolean) {
+        cachedPeaks?.close()
+        cachedPeaks = null
+        hasLoadedPeaks = try {
+            cachedPeaks = openPeaks(isExternal)
+            true
+        } catch (e: IOException) {
+            false
+        }
+    }
+
+    private suspend fun openPeaks(isExternal: Boolean): PeakOverlay? {
+        if (!isExternal) {
+            return PeakOverlay.open(AssetByteRangeReader(PEAKS_PATH))
+        }
+        val file = DependencyRegistry.get<FileSubsystem>().get(PEAKS_PATH)
+        return if (file.exists()) PeakOverlay.open(ByteRangeReader.fromFile(file)) else null
+    }
+
+    private suspend fun addPeaks(elevation: Float, location: Coordinate): Float {
+        return elevation + (cachedPeaks?.getOffset(location.latitude, location.longitude, elevation) ?: 0f)
+    }
+
     fun invalidateCache() {
+        clearElevationCaches()
+        cachedSources = null
+        cachedPeaks?.close()
+        cachedPeaks = null
+        hasLoadedPeaks = false
+        cachedHasWaterMask = false
+        cachedIsExternal = null
+    }
+
+    private fun clearElevationCaches() {
         cache = GeospatialCache(Distance.meters(CACHE_DISTANCE), size = CACHE_SIZE)
         pixelCache = MemoryLRUCache(1)
         tileCache = MemoryLRUCache(16)
-        cachedSources = null
-        cachedHasWaterMask = false
-        cachedIsExternal = null
     }
 
     fun isExternalModel(): Boolean {

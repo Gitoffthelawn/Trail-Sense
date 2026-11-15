@@ -1,2 +1,50 @@
+  </main>
+  <script>
+    // The table of contents sits beside the page on wide screens, where it should start expanded
+    var toc = document.querySelector(".toc details");
+    if (toc && window.matchMedia("(min-width: 1280px)").matches) {
+      toc.open = true;
+    }
+  </script>
+  <script>
+    // Tape the guide images to the page like prints
+    document.querySelectorAll(".prose img").forEach(function (img) {
+      var wrap = document.createElement("span");
+      wrap.className = "taped";
+      img.parentNode.insertBefore(wrap, img);
+      wrap.appendChild(img);
+    });
+  </script>
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="brand">
+          <img src="/assets/images/logo.png" alt="" width="28" height="28" />
+          <span>{{ title }}</span>
+        </a>
+        <p>An offline multi-tool Android app for hiking, backpacking, camping, wilderness survival, foraging, and hunting.</p>
+      </div>
+      <nav aria-label="Explore">
+        <h2>Explore</h2>
+        <a href="/user-guide/">User Guide</a>
+        <a href="/book.html">Wilderness Survival Guide Book</a>
+        <a href="/offline_maps.html">Maps</a>
+        <a href="/dem.html">DEM</a>
+        <a href="/release-notes/">Release Notes</a>
+      </nav>
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <a href="https://github.com/kylecorry31/Trail-Sense" target="_blank" rel="noopener">GitHub</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/privacy_policy.html">Privacy Policy</a>
+        <a href="/#disclaimer">Disclaimer and License</a>
+        <a href="mailto:trailsense@protonmail.com">Contact</a>
+      </nav>
+    </div>
+    <div class="wrap footer-bottom">
+      <span>Built and maintained by <a href="https://github.com/kylecorry31" target="_blank" rel="noopener">Kyle Corry</a>. Open source under the MIT License.</span>
+    </div>
+  </footer>
 </body>
+
 </html>

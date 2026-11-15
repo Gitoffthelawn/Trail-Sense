@@ -15,15 +15,13 @@ import com.kylecorry.trail_sense.test_utils.ToolTestBase
 import com.kylecorry.trail_sense.test_utils.views.Side
 import com.kylecorry.trail_sense.test_utils.views.toolbarButton
 import com.kylecorry.trail_sense.tools.tools.infrastructure.Tools
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class ToolAugmentedRealityTest : ToolTestBase(Tools.AUGMENTED_REALITY) {
 
-    @Test
-    fun verifyBasicFunctionality() {
-        if (!Tools.isToolAvailable(context, Tools.AUGMENTED_REALITY)) {
-            return
-        }
+    private fun acceptThePrompts() {
+        assumeTrue(Tools.isToolAvailable(context, Tools.AUGMENTED_REALITY))
 
         // Click OK on the prompts
         clickOk()
@@ -31,36 +29,37 @@ class ToolAugmentedRealityTest : ToolTestBase(Tools.AUGMENTED_REALITY) {
         if (!Sensors.hasGyroscope(context)) {
             clickOk()
         }
-
-        if (Camera.hasBackCamera(context)) {
-            isTrue(10000) {
-                isCameraInUse(isBackFacing = true)
-            }
-        }
-
-        canTurnOffCamera()
-        canCalibrate()
-        canSearch()
-        canToggleLayers()
     }
 
-    private fun canTurnOffCamera() {
+    @Test
+    fun usesTheBackCameraUntilItIsTurnedOff() {
+        assumeTrue(Camera.hasBackCamera(context))
+        acceptThePrompts()
+
+        isTrue(10000) {
+            isCameraInUse(isBackFacing = true)
+        }
+
         click(R.id.camera_toggle)
 
-        if (Camera.hasBackCamera(context)) {
-            isTrue {
-                !isCameraInUse(isBackFacing = true)
-            }
+        isTrue {
+            !isCameraInUse(isBackFacing = true)
         }
     }
 
-    private fun canCalibrate() {
+    @Test
+    fun canCalibrate() {
+        acceptThePrompts()
+
         click(R.id.calibrate_btn)
         clickOk()
         click(R.id.confirm_calibration_button)
     }
 
-    private fun canSearch() {
+    @Test
+    fun canSearchForAnAstronomyObject() {
+        acceptThePrompts()
+
         click(R.id.ar_search_btn)
         click(string(R.string.astronomy))
         clickOk()
@@ -68,7 +67,10 @@ class ToolAugmentedRealityTest : ToolTestBase(Tools.AUGMENTED_REALITY) {
         click(string(android.R.string.cancel))
     }
 
-    private fun canToggleLayers() {
+    @Test
+    fun canToggleTheLayers() {
+        acceptThePrompts()
+
         click(R.id.layers_btn)
         // Verify the layers panel is visible
         hasText(string(R.string.beacons))

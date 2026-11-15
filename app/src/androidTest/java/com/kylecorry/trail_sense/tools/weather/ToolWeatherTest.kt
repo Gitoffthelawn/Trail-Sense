@@ -30,10 +30,8 @@ import java.time.Duration
 class ToolWeatherTest : ToolTestBase(Tools.WEATHER) {
 
     @Test
-    fun verifyBasicFunctionality() {
-        if (!Tools.isToolAvailable(context, Tools.WEATHER)) {
-            return
-        }
+    fun showsTheWeatherFromTheDevicesSensors() {
+        assumeTrue(Tools.isToolAvailable(context, Tools.WEATHER))
 
         // Historic temperature disclaimer
         clickOk()
@@ -84,12 +82,15 @@ class ToolWeatherTest : ToolTestBase(Tools.WEATHER) {
             isVisible(R.id.chart)
             clickOk()
         }
-
-        canUseWeatherMonitor()
-        verifyQuickAction()
     }
 
-    private fun canUseWeatherMonitor() {
+    @Test
+    fun canUseWeatherMonitor() {
+        assumeTrue(Tools.isToolAvailable(context, Tools.WEATHER))
+
+        // Historic temperature disclaimer
+        clickOk()
+
         hasText(R.id.play_bar_title, "Off - 30m")
         click(R.id.play_btn)
 
@@ -117,7 +118,13 @@ class ToolWeatherTest : ToolTestBase(Tools.WEATHER) {
         }
     }
 
-    private fun verifyQuickAction() {
+    @Test
+    fun canUseWeatherMonitorFromTheQuickAction() {
+        assumeTrue(Tools.isToolAvailable(context, Tools.WEATHER))
+
+        // Historic temperature disclaimer
+        clickOk()
+
         TestUtils.openQuickActions()
         click(quickAction(Tools.QUICK_ACTION_WEATHER_MONITOR))
 
